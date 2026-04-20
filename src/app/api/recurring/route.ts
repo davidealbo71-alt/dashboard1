@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
 import { RecurringData } from '@/types/deal'
+import { getDateRange } from '@/lib/dateRange'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,13 +24,15 @@ function group(arr: Record<string, unknown>[], key: string) {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
+  const month = searchParams.get('month') ?? ''
   const proprietario = searchParams.get('proprietario') ?? ''
+  const { from, to } = getDateRange(year, month)
   const supabase = getSupabase()
 
   let q = supabase
     .from('deals')
     .select('importo,importo_previsto,tipo_trattativa,proprietario')
-    .gte('data_chiusura', `${year}-01-01`).lte('data_chiusura', `${year}-12-31`)
+    .gte('data_chiusura', from).lte('data_chiusura', to)
     .not('tipo_trattativa', 'is', null)
     .neq('tipo_trattativa', '')
   if (proprietario) q = q.eq('proprietario', proprietario)

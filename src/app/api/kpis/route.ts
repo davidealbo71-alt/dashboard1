@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
 import { GroupItem, KpiData } from '@/types/deal'
+import { getDateRange } from '@/lib/dateRange'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,7 +42,9 @@ function groupBy(arr: Row[], key: keyof Row): GroupItem[] {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
+  const month = searchParams.get('month') ?? ''
   const proprietario = searchParams.get('proprietario') ?? ''
+  const { from, to } = getDateRange(year, month)
   const supabase = getSupabase()
 
   const { data: allYears } = await supabase
@@ -56,7 +59,7 @@ export async function GET(request: NextRequest) {
   let q = supabase
     .from('deals')
     .select('importo,importo_previsto,fase_trattativa,business_unit,proprietario,azienda_associata,service_line,vinta,persa,data_entrata_fase')
-    .gte('data_chiusura', `${year}-01-01`).lte('data_chiusura', `${year}-12-31`)
+    .gte('data_chiusura', from).lte('data_chiusura', to)
   if (proprietario) q = q.eq('proprietario', proprietario)
 
   const { data, error } = await q

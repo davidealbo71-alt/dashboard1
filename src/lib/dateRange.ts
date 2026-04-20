@@ -16,6 +16,11 @@ export function getAvailableMonths(year: number): { value: number; label: string
   const now = new Date()
   const currentYear = now.getFullYear()
   const currentMonth = now.getMonth() + 1
-  const maxMonth = year < currentYear ? 12 : year === currentYear ? currentMonth : 0
-  return Array.from({ length: maxMonth }, (_, i) => ({ value: i + 1, label: MONTHS[i] }))
+  const startMonth = year === currentYear ? currentMonth : 1
+  const endMonth = year <= currentYear ? 12 : 0
+  if (endMonth === 0) return []
+  return Array.from({ length: endMonth - startMonth + 1 }, (_, i) => ({
+    value: startMonth + i,
+    label: MONTHS[startMonth + i - 1],
+  }))
 }

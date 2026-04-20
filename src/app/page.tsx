@@ -69,15 +69,15 @@ export default function HomePage() {
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               <StatCard
                 title="Pipeline Aperta"
-                value={eur(kpi.pipeline_aperta)}
-                sub={`Pesato: ${eur(kpi.pipeline_aperta_pesata)}`}
+                value={eur(kpi.pipeline_aperta_pesata)}
+                sub={`Non pesato: ${eur(kpi.pipeline_aperta)}`}
                 icon={TrendingUp}
                 color="blue"
               />
               <StatCard
                 title="Totale WON"
-                value={eur(kpi.totale_won)}
-                sub={`Pesato: ${eur(kpi.totale_won_pesato)}`}
+                value={eur(kpi.totale_won_pesato)}
+                sub={`Non pesato: ${eur(kpi.totale_won)}`}
                 icon={Trophy}
                 color="emerald"
               />

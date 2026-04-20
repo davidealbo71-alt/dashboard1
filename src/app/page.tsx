@@ -14,7 +14,6 @@ function eur(v: number) {
 export default function HomePage() {
   const [kpi, setKpi] = useState<KpiData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [pesato, setPesato] = useState(false)
 
   const fetchKpi = useCallback(async () => {
     setLoading(true)
@@ -28,12 +27,10 @@ export default function HomePage() {
 
   const isEmpty = !kpi || kpi.totale_trattative === 0
   const perAnnoFiltered = kpi?.per_anno.filter(a => a.label !== 'N/D') ?? []
-  const vKey = pesato ? 'importo_pesato' : 'importo'
 
   return (
     <div className="min-h-screen bg-slate-50">
 
-      {/* Header */}
       <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -45,24 +42,7 @@ export default function HomePage() {
               <p className="text-xs text-slate-400">HubSpot CRM · Dati aggiornati</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Toggle importo / pesato */}
-            <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 p-1 text-xs font-medium">
-              <button
-                onClick={() => setPesato(false)}
-                className={`rounded-md px-3 py-1.5 transition-colors ${!pesato ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Importo
-              </button>
-              <button
-                onClick={() => setPesato(true)}
-                className={`rounded-md px-3 py-1.5 transition-colors ${pesato ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Pesato
-              </button>
-            </div>
-            <UploadExcel onUploadSuccess={fetchKpi} />
-          </div>
+          <UploadExcel onUploadSuccess={fetchKpi} />
         </div>
       </header>
 
@@ -84,45 +64,47 @@ export default function HomePage() {
 
         {!loading && kpi && !isEmpty && (
           <>
+            {/* KPI cards — Importo primario, Pesato secondario */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               <StatCard
                 title="Pipeline Aperta"
-                value={eur(pesato ? kpi.pipeline_aperta_pesata : kpi.pipeline_aperta)}
-                sub={`${kpi.per_fase.filter(f => f.label !== 'WON' && !f.label.toUpperCase().includes('LOST')).reduce((s, f) => s + f.count, 0)} trattative attive`}
+                value={eur(kpi.pipeline_aperta)}
+                sub={`Pesato: ${eur(kpi.pipeline_aperta_pesata)}`}
                 icon={TrendingUp}
                 color="blue"
               />
               <StatCard
                 title="Totale WON"
-                value={eur(pesato ? kpi.totale_won_pesato : kpi.totale_won)}
-                sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} trattative vinte`}
+                value={eur(kpi.totale_won)}
+                sub={`Pesato: ${eur(kpi.totale_won_pesato)}`}
                 icon={Trophy}
                 color="emerald"
               />
               <StatCard
                 title="Win Rate"
                 value={`${kpi.win_rate.toFixed(1)}%`}
-                sub="su trattative chiuse"
+                sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} vinte su ${kpi.per_fase.filter(f => f.label === 'WON' || f.label.toUpperCase().includes('LOST')).reduce((s,f)=>s+f.count,0)} chiuse`}
                 icon={Target}
                 color="amber"
               />
               <StatCard
                 title="Totale Trattative"
                 value={kpi.totale_trattative.toLocaleString('it-IT')}
-                sub="nel database"
+                sub={`Attive: ${kpi.per_fase.filter(f => f.label !== 'WON' && !f.label.toUpperCase().includes('LOST')).reduce((s,f)=>s+f.count,0)}`}
                 icon={BarChart2}
                 color="rose"
               />
             </div>
 
+            {/* Grafici — tutti dual (Importo + Pesato) tranne Fase che è conteggio */}
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <BarChart data={kpi.per_business_unit} title="Importo per Business Unit" valueKey={vKey} currency />
-              <BarChart data={kpi.per_fase} title="Trattative per Fase" valueKey="count" currency={false} />
+              <BarChart data={kpi.per_business_unit} title="Importo per Business Unit" mode="dual" />
+              <BarChart data={kpi.per_fase} title="Trattative per Fase" mode="count" />
             </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <BarChart data={kpi.top_owners} title="Top Proprietari per Importo" valueKey={vKey} currency horizontal height={340} />
-              <BarChart data={perAnnoFiltered} title="Pipeline per Anno di Competenza" valueKey={vKey} currency />
+              <BarChart data={kpi.top_owners} title="Top Proprietari per Importo" mode="dual" horizontal height={340} />
+              <BarChart data={perAnnoFiltered} title="Pipeline per Anno di Competenza" mode="dual" />
             </div>
           </>
         )}

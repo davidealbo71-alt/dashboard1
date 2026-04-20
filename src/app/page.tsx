@@ -10,13 +10,14 @@ import { TopDealsTable } from '@/components/TopDealsTable'
 import { LostDealsTab } from '@/components/LostDealsTab'
 import { RecurringTab } from '@/components/RecurringTab'
 import { StalloTab } from '@/components/StalloTab'
+import { SolideTab } from '@/components/SolideTab'
 import { KpiData, LostData, RecurringData } from '@/types/deal'
 
 function eur(v: number) {
   return '€' + v.toLocaleString('it-IT', { maximumFractionDigits: 0 })
 }
 
-type Tab = 'dashboard' | 'opportunita' | 'persi' | 'ricorrenti' | 'stallo'
+type Tab = 'dashboard' | 'opportunita' | 'persi' | 'ricorrenti' | 'stallo' | 'solide'
 
 interface StalloDeal {
   nome_trattativa: string; azienda_associata: string; importo: number
@@ -37,6 +38,7 @@ export default function HomePage() {
   const [lostData, setLostData] = useState<LostData | null>(null)
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null)
   const [stalloDeals, setStalloDeals] = useState<StalloDeal[]>([])
+  const [solideDeals, setSolideDeals] = useState<StalloDeal[]>([])
   const [loading, setLoading] = useState(true)
   const [anno, setAnno] = useState(2026)
   const [mese, setMese] = useState('')
@@ -53,21 +55,23 @@ export default function HomePage() {
   const fetchAll = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
     const qs = buildParams(year, proprietario)
-    const [kpiRes, dealsRes, lostRes, recRes, stalloRes] = await Promise.all([
+    const [kpiRes, dealsRes, lostRes, recRes, stalloRes, solideRes] = await Promise.all([
       fetch(`/api/kpis?${qs}`),
       fetch(`/api/top-deals?${qs}`),
       fetch(`/api/lost-deals?${qs}`),
       fetch(`/api/recurring?${qs}`),
       fetch(`/api/stallo?${qs}`),
+      fetch(`/api/solide?${qs}`),
     ])
-    const [kpiData, dealsData, lostD, recD, stalloD] = await Promise.all([
-      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json(), stalloRes.json()
+    const [kpiData, dealsData, lostD, recD, stalloD, solideD] = await Promise.all([
+      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json(), stalloRes.json(), solideRes.json()
     ])
     setKpi(kpiData.error ? null : kpiData)
     setTopDeals(Array.isArray(dealsData) ? dealsData : [])
     setLostData(lostD.error ? null : lostD)
     setRecurringData(recD.error ? null : recD)
     setStalloDeals(Array.isArray(stalloD) ? stalloD : [])
+    setSolideDeals(Array.isArray(solideD) ? solideD : [])
     setLoading(false)
   }, [buildParams])
 
@@ -83,6 +87,7 @@ export default function HomePage() {
     { id: 'persi',       label: 'Analisi Persi',     icon: <TrendingDown className="h-4 w-4" /> },
     { id: 'ricorrenti',  label: 'Ricavi Ricorrenti', icon: <RefreshCw className="h-4 w-4" /> },
     { id: 'stallo',      label: 'A Rischio Stallo',  icon: <AlertTriangle className="h-4 w-4" /> },
+    { id: 'solide',      label: 'Trattative Solide', icon: <ShieldCheck className="h-4 w-4" /> },
   ]
 
   return (
@@ -219,6 +224,9 @@ export default function HomePage() {
 
         {/* A RISCHIO STALLO */}
         {!loading && tab === 'stallo' && <StalloTab deals={stalloDeals} />}
+
+        {/* TRATTATIVE SOLIDE */}
+        {!loading && tab === 'solide' && <SolideTab deals={solideDeals} />}
       </main>
     </div>
   )

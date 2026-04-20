@@ -1,34 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
+
+export const dynamic = 'force-dynamic'
+
+function excelDateToISO(serial: number): string | null {
+  if (!serial) return null
+  const date = XLSX.SSF.parse_date_code(serial)
+  if (!date) return null
+  return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
+}
+
+function toBool(val: unknown): boolean {
+  if (typeof val === 'boolean') return val
+  if (typeof val === 'string') return val.toLowerCase() === 'true'
+  return false
+}
+
+function toNum(val: unknown): number {
+  const n = Number(val)
+  return isNaN(n) ? 0 : n
+}
+
+function toInt(val: unknown): number | null {
+  const n = parseInt(String(val))
+  return isNaN(n) ? null : n
+}
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
   const file = formData.get('file') as File
 
   if (!file) {
-    return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 })
   }
 
   const buffer = await file.arrayBuffer()
   const workbook = XLSX.read(buffer, { type: 'array' })
-  const sheetName = workbook.SheetNames[0]
-  const sheet = workbook.Sheets[sheetName]
+  const sheet = workbook.Sheets[workbook.SheetNames[0]]
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet)
 
   const records = rows.map((row) => ({
-    name: String(row['name'] ?? row['Name'] ?? row['KPI'] ?? row['kpi'] ?? ''),
-    value: Number(row['value'] ?? row['Value'] ?? row['valore'] ?? row['Valore'] ?? 0),
-    unit: String(row['unit'] ?? row['Unit'] ?? row['unità'] ?? ''),
-    category: String(row['category'] ?? row['Category'] ?? row['categoria'] ?? row['Categoria'] ?? ''),
-    date: String(row['date'] ?? row['Date'] ?? row['data'] ?? row['Data'] ?? ''),
-  })).filter((r) => r.name)
+    id_record: String(row['ID record'] ?? ''),
+    nome_trattativa: String(row['Nome trattativa'] ?? ''),
+    importo: toNum(row['Importo']),
+    fase_trattativa: String(row['Fase trattativa'] ?? ''),
+    business_unit: String(row['Business Unit'] ?? ''),
+    data_chiusura: typeof row['Data di chiusura'] === 'number'
+      ? excelDateToISO(row['Data di chiusura'] as number)
+      : String(row['Data di chiusura'] ?? '') || null,
+    proprietario: String(row['Proprietario della trattativa'] ?? ''),
+    pipeline: String(row['Pipeline'] ?? ''),
+    anno_competenza: toInt(row['Anno di Competenza']),
+    azienda_associata: String(row['Azienda Associata'] ?? ''),
+    vinta: toBool(row['È con chiusura vinta']),
+    persa: toBool(row['È con chiusura persa']),
+    categoria_previsione: String(row['Categoria di previsione'] ?? ''),
+    probabilita: toNum(row['Probabilità trattativa']),
+    service_line: String(row['Service Line'] ?? ''),
+    importo_previsto: toNum(row['Importo previsto offerta']),
+    paese: String(row['Paese della Trattativa'] ?? ''),
+  }))
 
-  const { data, error } = await supabase.from('kpis').insert(records).select()
+  const supabase = getSupabase()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  // Sostituisce tutti i dati esistenti
+  await supabase.from('deals').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+
+  const BATCH = 200
+  let inserted = 0
+  for (let i = 0; i < records.length; i += BATCH) {
+    const { error } = await supabase.from('deals').insert(records.slice(i, i + BATCH))
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    inserted += Math.min(BATCH, records.length - i)
   }
 
-  return NextResponse.json({ inserted: data?.length ?? 0 })
+  return NextResponse.json({ inserted })
 }

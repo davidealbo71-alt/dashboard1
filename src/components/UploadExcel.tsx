@@ -28,7 +28,7 @@ export function UploadExcel({ onUploadSuccess }: Props) {
     setLoading(false)
 
     if (res.ok) {
-      setMessage(`✓ ${json.inserted} KPI importati`)
+      setMessage(`✓ ${json.inserted} trattative importate`)
       onUploadSuccess()
     } else {
       setMessage(`Errore: ${json.error}`)

@@ -20,7 +20,7 @@ type Tab = 'dashboard' | 'opportunita' | 'persi' | 'ricorrenti' | 'stallo'
 interface StalloDeal {
   nome_trattativa: string; azienda_associata: string; importo: number
   importo_previsto: number; fase_trattativa: string; proprietario: string
-  data_chiusura: string | null; data_entrata_fase: string | null
+  data_chiusura: string | null; data_entrata_fase: string | null; data_creazione: string | null
   probabilita: number; giorni_in_fase: number
 }
 

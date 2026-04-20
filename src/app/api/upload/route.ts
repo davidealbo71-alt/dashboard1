@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
     probabilita: toNum(row['Probabilità trattativa']),
     service_line: String(row['Service Line'] ?? ''),
     importo_previsto: toNum(row['Importo previsto offerta']),
+    data_creazione: toDate(row['Data di creazione']),
     tipo_trattativa: String(row['Tipo di trattativa'] ?? ''),
     motivo_lost: String(row['Motivo della trattativa LOST'] ?? ''),
     paese: String(row['Paese della Trattativa'] ?? ''),

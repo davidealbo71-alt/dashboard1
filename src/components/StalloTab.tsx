@@ -13,6 +13,7 @@ interface StalloDeal {
   proprietario: string
   data_chiusura: string | null
   data_entrata_fase: string | null
+  data_creazione: string | null
   probabilita: number
   giorni_in_fase: number
 }
@@ -91,6 +92,7 @@ export function StalloTab({ deals }: Props) {
               <TableHead className="text-xs">Azienda</TableHead>
               <TableHead className="text-xs">Fase</TableHead>
               <TableHead className="text-xs">Sales</TableHead>
+              <TableHead className="text-xs text-right">Data Apertura</TableHead>
               <TableHead className="text-xs text-right">Importo</TableHead>
               <TableHead className="text-xs text-right">Pesato</TableHead>
               <TableHead className="text-xs text-right">Giorni in Fase</TableHead>
@@ -106,6 +108,9 @@ export function StalloTab({ deals }: Props) {
                   <Badge variant="outline" className="text-xs whitespace-nowrap">{d.fase_trattativa || '—'}</Badge>
                 </TableCell>
                 <TableCell className="text-xs text-slate-600 whitespace-nowrap">{d.proprietario || '—'}</TableCell>
+                <TableCell className="text-xs text-slate-500 text-right whitespace-nowrap">
+                  {d.data_creazione ? new Date(d.data_creazione).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                </TableCell>
                 <TableCell className="text-xs font-semibold text-slate-700 text-right whitespace-nowrap">{eur(d.importo)}</TableCell>
                 <TableCell className="text-xs text-slate-500 text-right whitespace-nowrap">{eur(d.importo_previsto)}</TableCell>
                 <TableCell className={`text-xs text-right whitespace-nowrap ${giornoColor(d.giorni_in_fase)}`}>

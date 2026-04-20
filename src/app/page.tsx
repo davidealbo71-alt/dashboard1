@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { TrendingUp, Trophy, Target, BarChart2, Calendar } from 'lucide-react'
+import { TrendingUp, Trophy, Target, BarChart2, Calendar, User } from 'lucide-react'
 import { StatCard } from '@/components/StatCard'
 import { BarChart } from '@/components/BarChart'
 import { UploadExcel } from '@/components/UploadExcel'
@@ -15,19 +15,23 @@ export default function HomePage() {
   const [kpi, setKpi] = useState<KpiData | null>(null)
   const [loading, setLoading] = useState(true)
   const [anno, setAnno] = useState(2026)
+  const [sales, setSales] = useState('')
 
-  const fetchKpi = useCallback(async (year: number) => {
+  const fetchKpi = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
-    const res = await fetch(`/api/kpis?year=${year}`)
+    const params = new URLSearchParams({ year: String(year) })
+    if (proprietario) params.set('proprietario', proprietario)
+    const res = await fetch(`/api/kpis?${params}`)
     const data = await res.json()
     setKpi(data.error ? null : data)
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchKpi(anno) }, [fetchKpi, anno])
+  useEffect(() => { fetchKpi(anno, sales) }, [fetchKpi, anno, sales])
 
   const isEmpty = !kpi || kpi.totale_trattative === 0
   const perBuFiltered = kpi?.per_business_unit.filter(b => b.label === 'Digital Platform') ?? []
+  const showTopOwners = !sales // nasconde "Top Proprietari" se è già filtrato su uno
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -45,13 +49,29 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Selettore anno */}
+            {/* Filtro Sales */}
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <User className="h-4 w-4 text-slate-400" />
+              <span className="text-xs text-slate-500 font-medium">Sales</span>
+              <select
+                value={sales}
+                onChange={e => setSales(e.target.value)}
+                className="bg-transparent text-sm font-semibold text-slate-700 outline-none cursor-pointer max-w-[160px]"
+              >
+                <option value="">Tutti</option>
+                {(kpi?.proprietari_disponibili ?? []).map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filtro Anno */}
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
               <Calendar className="h-4 w-4 text-slate-400" />
               <span className="text-xs text-slate-500 font-medium">Anno</span>
               <select
                 value={anno}
-                onChange={e => setAnno(Number(e.target.value))}
+                onChange={e => { setAnno(Number(e.target.value)); setSales('') }}
                 className="bg-transparent text-sm font-semibold text-slate-700 outline-none cursor-pointer"
               >
                 {(kpi?.anni_disponibili ?? [anno]).map(y => (
@@ -59,12 +79,24 @@ export default function HomePage() {
                 ))}
               </select>
             </div>
-            <UploadExcel onUploadSuccess={() => fetchKpi(anno)} />
+
+            <UploadExcel onUploadSuccess={() => fetchKpi(anno, sales)} />
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl p-6 space-y-6">
+
+        {/* Badge filtro attivo */}
+        {sales && (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 border border-blue-200">
+              <User className="h-3 w-3" />
+              {sales}
+              <button onClick={() => setSales('')} className="ml-1 text-blue-400 hover:text-blue-600">✕</button>
+            </span>
+          </div>
+        )}
 
         {loading && (
           <div className="flex items-center justify-center py-24 text-slate-400 text-sm">
@@ -75,7 +107,7 @@ export default function HomePage() {
         {!loading && isEmpty && (
           <div className="rounded-xl border-2 border-dashed border-slate-200 p-16 text-center">
             <BarChart2 className="mx-auto h-10 w-10 text-slate-300 mb-3" />
-            <p className="text-slate-500 font-medium">Nessun dato per il {anno}</p>
+            <p className="text-slate-500 font-medium">Nessun dato per il {anno}{sales ? ` · ${sales}` : ''}</p>
             <p className="text-slate-400 text-sm mt-1">Importa il file Excel HubSpot per iniziare</p>
           </div>
         )}
@@ -118,10 +150,9 @@ export default function HomePage() {
               <BarChart data={kpi.per_fase} title="Trattative per Fase" mode="count" />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {showTopOwners && (
               <BarChart data={kpi.top_owners} title="Top Proprietari per Importo" mode="dual" horizontal height={340} />
-              <BarChart data={kpi.per_anno} title="Pipeline per Anno di Competenza" mode="dual" />
-            </div>
+            )}
           </>
         )}
       </main>

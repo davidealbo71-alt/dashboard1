@@ -30,6 +30,7 @@ export interface GroupItem {
 export interface KpiData {
   anno: number
   anni_disponibili: number[]
+  proprietari_disponibili: string[]
   pipeline_aperta: number
   pipeline_aperta_pesata: number
   totale_won: number
@@ -39,5 +40,4 @@ export interface KpiData {
   per_business_unit: GroupItem[]
   per_fase: GroupItem[]
   top_owners: GroupItem[]
-  per_anno: GroupItem[]
 }

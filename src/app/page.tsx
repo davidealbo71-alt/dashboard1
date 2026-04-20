@@ -76,8 +76,8 @@ export default function HomePage() {
               />
               <StatCard
                 title="Totale WON"
-                value={eur(kpi.totale_won_pesato)}
-                sub={`Non pesato: ${eur(kpi.totale_won)}`}
+                value={eur(kpi.totale_won)}
+                sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} trattative vinte`}
                 icon={Trophy}
                 color="emerald"
               />

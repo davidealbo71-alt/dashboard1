@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { TrendingUp, Trophy, Target, BarChart2, Calendar, User } from 'lucide-react'
+import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck } from 'lucide-react'
 import { StatCard } from '@/components/StatCard'
 import { BarChart } from '@/components/BarChart'
 import { UploadExcel } from '@/components/UploadExcel'
@@ -114,7 +114,7 @@ export default function HomePage() {
 
         {!loading && kpi && !isEmpty && (
           <>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
               <StatCard
                 title="Pipeline Aperta"
                 value={eur(kpi.pipeline_aperta_pesata)}
@@ -142,6 +142,13 @@ export default function HomePage() {
                 sub={`Attive: ${kpi.per_fase.filter(f => f.label !== 'WON' && !f.label.toUpperCase().includes('LOST')).reduce((s, f) => s + f.count, 0)}`}
                 icon={BarChart2}
                 color="rose"
+              />
+              <StatCard
+                title="Trattative Solide"
+                value={eur(kpi.trattative_solide_pesate)}
+                sub={`Non pesato: ${eur(kpi.trattative_solide)} · ${kpi.trattative_solide_count} deal`}
+                icon={ShieldCheck}
+                color="blue"
               />
             </div>
 

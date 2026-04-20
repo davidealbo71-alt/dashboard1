@@ -62,9 +62,11 @@ export async function GET(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const deals = (data ?? []) as Row[]
+  const FASI_SOLIDE = ['Committed', 'Negotiation']
   const aperte = deals.filter(d => !d.vinta && !d.persa)
   const vinte = deals.filter(d => d.vinta)
   const chiuse = deals.filter(d => d.vinta || d.persa)
+  const solide = deals.filter(d => FASI_SOLIDE.some(f => d.fase_trattativa?.includes(f)))
 
   const kpi: KpiData = {
     anno: Number(year),
@@ -76,6 +78,9 @@ export async function GET(request: NextRequest) {
     totale_won_pesato: vinte.reduce((s, d) => s + (Number(d.importo_previsto) || 0), 0),
     win_rate: chiuse.length > 0 ? (vinte.length / chiuse.length) * 100 : 0,
     totale_trattative: deals.length,
+    trattative_solide: solide.reduce((s, d) => s + (Number(d.importo) || 0), 0),
+    trattative_solide_pesate: solide.reduce((s, d) => s + (Number(d.importo_previsto) || 0), 0),
+    trattative_solide_count: solide.length,
     per_business_unit: groupBy(deals, 'business_unit').slice(0, 8),
     per_fase: groupBy(deals, 'fase_trattativa'),
     top_owners: groupBy(deals, 'proprietario').slice(0, 10),

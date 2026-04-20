@@ -37,6 +37,9 @@ export interface KpiData {
   totale_won_pesato: number
   win_rate: number
   totale_trattative: number
+  trattative_solide: number
+  trattative_solide_pesate: number
+  trattative_solide_count: number
   per_business_unit: GroupItem[]
   per_fase: GroupItem[]
   top_owners: GroupItem[]

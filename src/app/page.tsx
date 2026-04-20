@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { TrendingUp, Trophy, Target, BarChart2 } from 'lucide-react'
 import { StatCard } from '@/components/StatCard'
 import { BarChart } from '@/components/BarChart'
 import { UploadExcel } from '@/components/UploadExcel'
@@ -26,24 +27,41 @@ export default function HomePage() {
 
   const isEmpty = !kpi || kpi.totale_trattative === 0
 
-  return (
-    <main className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+  // Filtra anni N/D
+  const perAnnoFiltered = kpi?.per_anno.filter(a => a.label !== 'N/D') ?? []
 
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Dashboard Pipeline Commerciale</h1>
-            <p className="text-sm text-muted-foreground">Dati HubSpot CRM</p>
+  return (
+    <div className="min-h-screen bg-slate-50">
+
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
+        <div className="mx-auto max-w-7xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
+              <BarChart2 className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-800 leading-tight">Dashboard Pipeline</h1>
+              <p className="text-xs text-slate-400">HubSpot CRM · Dati aggiornati</p>
+            </div>
           </div>
           <UploadExcel onUploadSuccess={fetchKpi} />
         </div>
+      </header>
 
-        {loading && <p className="text-muted-foreground">Caricamento...</p>}
+      <main className="mx-auto max-w-7xl p-6 space-y-6">
+
+        {loading && (
+          <div className="flex items-center justify-center py-24 text-slate-400 text-sm">
+            Caricamento dati...
+          </div>
+        )}
 
         {!loading && isEmpty && (
-          <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
-            Nessun dato presente. Importa il file Excel HubSpot per iniziare.
+          <div className="rounded-xl border-2 border-dashed border-slate-200 p-16 text-center">
+            <BarChart2 className="mx-auto h-10 w-10 text-slate-300 mb-3" />
+            <p className="text-slate-500 font-medium">Nessun dato presente</p>
+            <p className="text-slate-400 text-sm mt-1">Importa il file Excel HubSpot per iniziare</p>
           </div>
         )}
 
@@ -54,22 +72,30 @@ export default function HomePage() {
               <StatCard
                 title="Pipeline Aperta"
                 value={eur(kpi.pipeline_aperta)}
-                sub={`${kpi.per_fase.filter(f => f.label !== 'WON' && !f.label.toLowerCase().includes('lost')).reduce((s,f)=>s+f.count,0)} trattative attive`}
+                sub={`${kpi.per_fase.filter(f => f.label !== 'WON' && !f.label.toUpperCase().includes('LOST')).reduce((s, f) => s + f.count, 0)} trattative attive`}
+                icon={TrendingUp}
+                color="blue"
               />
               <StatCard
                 title="Totale WON"
                 value={eur(kpi.totale_won)}
                 sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} trattative vinte`}
+                icon={Trophy}
+                color="emerald"
               />
               <StatCard
                 title="Win Rate"
                 value={`${kpi.win_rate.toFixed(1)}%`}
                 sub="su trattative chiuse"
+                icon={Target}
+                color="amber"
               />
               <StatCard
                 title="Totale Trattative"
                 value={kpi.totale_trattative.toLocaleString('it-IT')}
                 sub="nel database"
+                icon={BarChart2}
+                color="rose"
               />
             </div>
 
@@ -83,7 +109,7 @@ export default function HomePage() {
               />
               <BarChart
                 data={kpi.per_fase}
-                title="Trattative per Fase (n°)"
+                title="Trattative per Fase"
                 valueKey="count"
                 currency={false}
               />
@@ -97,10 +123,10 @@ export default function HomePage() {
                 valueKey="importo"
                 currency
                 horizontal
-                height={320}
+                height={340}
               />
               <BarChart
-                data={kpi.per_anno}
+                data={perAnnoFiltered}
                 title="Pipeline per Anno di Competenza"
                 valueKey="importo"
                 currency
@@ -108,7 +134,7 @@ export default function HomePage() {
             </div>
           </>
         )}
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }

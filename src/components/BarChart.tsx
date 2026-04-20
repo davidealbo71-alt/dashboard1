@@ -16,13 +16,14 @@ const PALETTE = ['#3b82f6','#10b981','#f59e0b','#6366f1','#ec4899','#06b6d4','#8
 interface DataItem {
   label: string
   importo: number
+  importo_pesato: number
   count: number
 }
 
 interface Props {
   data: DataItem[]
   title: string
-  valueKey?: 'importo' | 'count'
+  valueKey?: 'importo' | 'importo_pesato' | 'count'
   currency?: boolean
   horizontal?: boolean
   height?: number

@@ -20,13 +20,22 @@ export interface Deal {
   created_at: string
 }
 
+export interface GroupItem {
+  label: string
+  count: number
+  importo: number
+  importo_pesato: number
+}
+
 export interface KpiData {
   pipeline_aperta: number
+  pipeline_aperta_pesata: number
   totale_won: number
+  totale_won_pesato: number
   win_rate: number
   totale_trattative: number
-  per_business_unit: { label: string; importo: number; count: number }[]
-  per_fase: { label: string; count: number; importo: number }[]
-  top_owners: { label: string; importo: number; count: number }[]
-  per_anno: { label: string; importo: number; count: number }[]
+  per_business_unit: GroupItem[]
+  per_fase: GroupItem[]
+  top_owners: GroupItem[]
+  per_anno: GroupItem[]
 }

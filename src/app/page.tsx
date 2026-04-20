@@ -1,37 +1,69 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck } from 'lucide-react'
+import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck, LayoutDashboard, ListOrdered } from 'lucide-react'
 import { StatCard } from '@/components/StatCard'
 import { BarChart } from '@/components/BarChart'
 import { UploadExcel } from '@/components/UploadExcel'
+import { TopDealsTable } from '@/components/TopDealsTable'
 import { KpiData } from '@/types/deal'
 
 function eur(v: number) {
   return '€' + v.toLocaleString('it-IT', { maximumFractionDigits: 0 })
 }
 
+type Tab = 'dashboard' | 'opportunita'
+
+interface TopDeal {
+  nome_trattativa: string
+  azienda_associata: string
+  importo: number
+  importo_previsto: number
+  fase_trattativa: string
+  proprietario: string
+  data_chiusura: string | null
+  probabilita: number
+}
+
 export default function HomePage() {
   const [kpi, setKpi] = useState<KpiData | null>(null)
+  const [topDeals, setTopDeals] = useState<TopDeal[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingDeals, setLoadingDeals] = useState(false)
   const [anno, setAnno] = useState(2026)
   const [sales, setSales] = useState('')
+  const [tab, setTab] = useState<Tab>('dashboard')
+
+  const buildParams = useCallback((year: number, proprietario: string) => {
+    const p = new URLSearchParams({ year: String(year) })
+    if (proprietario) p.set('proprietario', proprietario)
+    return p.toString()
+  }, [])
 
   const fetchKpi = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
-    const params = new URLSearchParams({ year: String(year) })
-    if (proprietario) params.set('proprietario', proprietario)
-    const res = await fetch(`/api/kpis?${params}`)
+    const res = await fetch(`/api/kpis?${buildParams(year, proprietario)}`)
     const data = await res.json()
     setKpi(data.error ? null : data)
     setLoading(false)
-  }, [])
+  }, [buildParams])
 
-  useEffect(() => { fetchKpi(anno, sales) }, [fetchKpi, anno, sales])
+  const fetchTopDeals = useCallback(async (year: number, proprietario: string) => {
+    setLoadingDeals(true)
+    const res = await fetch(`/api/top-deals?${buildParams(year, proprietario)}`)
+    const data = await res.json()
+    setTopDeals(Array.isArray(data) ? data : [])
+    setLoadingDeals(false)
+  }, [buildParams])
+
+  useEffect(() => {
+    fetchKpi(anno, sales)
+    fetchTopDeals(anno, sales)
+  }, [fetchKpi, fetchTopDeals, anno, sales])
 
   const isEmpty = !kpi || kpi.totale_trattative === 0
   const perBuFiltered = kpi?.per_business_unit.filter(b => b.label === 'Digital Platform') ?? []
-  const showTopOwners = !sales // nasconde "Top Proprietari" se è già filtrato su uno
+  const showTopOwners = !sales
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -80,8 +112,24 @@ export default function HomePage() {
               </select>
             </div>
 
-            <UploadExcel onUploadSuccess={() => fetchKpi(anno, sales)} />
+            <UploadExcel onUploadSuccess={() => { fetchKpi(anno, sales); fetchTopDeals(anno, sales) }} />
           </div>
+        </div>
+
+        {/* Tab navigation */}
+        <div className="mx-auto max-w-7xl mt-3 flex gap-1">
+          <button
+            onClick={() => setTab('dashboard')}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${tab === 'dashboard' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <LayoutDashboard className="h-4 w-4" /> Dashboard
+          </button>
+          <button
+            onClick={() => setTab('opportunita')}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${tab === 'opportunita' ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <ListOrdered className="h-4 w-4" /> Top Opportunità
+          </button>
         </div>
       </header>
 
@@ -98,70 +146,48 @@ export default function HomePage() {
           </div>
         )}
 
-        {loading && (
-          <div className="flex items-center justify-center py-24 text-slate-400 text-sm">
-            Caricamento dati...
-          </div>
-        )}
-
-        {!loading && isEmpty && (
-          <div className="rounded-xl border-2 border-dashed border-slate-200 p-16 text-center">
-            <BarChart2 className="mx-auto h-10 w-10 text-slate-300 mb-3" />
-            <p className="text-slate-500 font-medium">Nessun dato per il {anno}{sales ? ` · ${sales}` : ''}</p>
-            <p className="text-slate-400 text-sm mt-1">Importa il file Excel HubSpot per iniziare</p>
-          </div>
-        )}
-
-        {!loading && kpi && !isEmpty && (
+        {/* TAB: DASHBOARD */}
+        {tab === 'dashboard' && (
           <>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-              <StatCard
-                title="Pipeline Aperta"
-                value={eur(kpi.pipeline_aperta_pesata)}
-                sub={`Non pesato: ${eur(kpi.pipeline_aperta)}`}
-                icon={TrendingUp}
-                color="blue"
-              />
-              <StatCard
-                title="Totale WON"
-                value={eur(kpi.totale_won)}
-                sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} trattative vinte`}
-                icon={Trophy}
-                color="emerald"
-              />
-              <StatCard
-                title="Win Rate"
-                value={`${kpi.win_rate.toFixed(1)}%`}
-                sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} vinte su ${kpi.per_fase.filter(f => f.label === 'WON' || f.label.toUpperCase().includes('LOST')).reduce((s, f) => s + f.count, 0)} chiuse`}
-                icon={Target}
-                color="amber"
-              />
-              <StatCard
-                title="Totale Trattative"
-                value={kpi.totale_trattative.toLocaleString('it-IT')}
-                sub={`Attive: ${kpi.per_fase.filter(f => f.label !== 'WON' && !f.label.toUpperCase().includes('LOST')).reduce((s, f) => s + f.count, 0)}`}
-                icon={BarChart2}
-                color="rose"
-              />
-              <StatCard
-                title="Trattative Solide"
-                value={eur(kpi.trattative_solide_pesate)}
-                sub={`Non pesato: ${eur(kpi.trattative_solide)}`}
-                sub2={`${kpi.trattative_solide_count} deal (Committed + Negotiation)`}
-                icon={ShieldCheck}
-                color="blue"
-              />
-            </div>
+            {loading && (
+              <div className="flex items-center justify-center py-24 text-slate-400 text-sm">Caricamento dati...</div>
+            )}
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <BarChart data={perBuFiltered} title="Importo — Digital Platform" mode="dual" hideXLabels />
-              <BarChart data={kpi.per_fase} title="Trattative per Fase" mode="count" />
-            </div>
+            {!loading && isEmpty && (
+              <div className="rounded-xl border-2 border-dashed border-slate-200 p-16 text-center">
+                <BarChart2 className="mx-auto h-10 w-10 text-slate-300 mb-3" />
+                <p className="text-slate-500 font-medium">Nessun dato per il {anno}{sales ? ` · ${sales}` : ''}</p>
+              </div>
+            )}
 
-            {showTopOwners && (
-              <BarChart data={kpi.top_owners} title="Top Proprietari per Importo" mode="dual" horizontal height={340} />
+            {!loading && kpi && !isEmpty && (
+              <>
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+                  <StatCard title="Pipeline Aperta" value={eur(kpi.pipeline_aperta_pesata)} sub={`Non pesato: ${eur(kpi.pipeline_aperta)}`} icon={TrendingUp} color="blue" />
+                  <StatCard title="Totale WON" value={eur(kpi.totale_won)} sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} trattative vinte`} icon={Trophy} color="emerald" />
+                  <StatCard title="Win Rate" value={`${kpi.win_rate.toFixed(1)}%`} sub={`${kpi.per_fase.find(f => f.label === 'WON')?.count ?? 0} vinte su ${kpi.per_fase.filter(f => f.label === 'WON' || f.label.toUpperCase().includes('LOST')).reduce((s, f) => s + f.count, 0)} chiuse`} icon={Target} color="amber" />
+                  <StatCard title="Totale Trattative" value={kpi.totale_trattative.toLocaleString('it-IT')} sub={`Attive: ${kpi.per_fase.filter(f => f.label !== 'WON' && !f.label.toUpperCase().includes('LOST')).reduce((s, f) => s + f.count, 0)}`} icon={BarChart2} color="rose" />
+                  <StatCard title="Trattative Solide" value={eur(kpi.trattative_solide_pesate)} sub={`Non pesato: ${eur(kpi.trattative_solide)}`} sub2={`${kpi.trattative_solide_count} deal (Committed + Negotiation)`} icon={ShieldCheck} color="blue" />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <BarChart data={perBuFiltered} title="Importo — Digital Platform" mode="dual" hideXLabels />
+                  <BarChart data={kpi.per_fase} title="Trattative per Fase" mode="count" />
+                </div>
+
+                {showTopOwners && (
+                  <BarChart data={kpi.top_owners} title="Top Proprietari per Importo" mode="dual" horizontal height={340} />
+                )}
+              </>
             )}
           </>
+        )}
+
+        {/* TAB: TOP OPPORTUNITÀ */}
+        {tab === 'opportunita' && (
+          loadingDeals
+            ? <div className="flex items-center justify-center py-24 text-slate-400 text-sm">Caricamento...</div>
+            : <TopDealsTable deals={topDeals} />
         )}
       </main>
     </div>

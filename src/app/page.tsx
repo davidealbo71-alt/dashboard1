@@ -48,7 +48,7 @@ export default function HomePage() {
     if (mese) p.set('month', mese)
     if (proprietario) p.set('proprietario', proprietario)
     return p.toString()
-  }, [])
+  }, [mese])
 
   const fetchAll = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)

@@ -16,11 +16,9 @@ export async function GET(request: NextRequest) {
 
   let q = supabase
     .from('deals')
-    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_creazione,probabilita')
+    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_creazione,probabilita,vinta,persa')
     .gte('data_chiusura', from)
     .lte('data_chiusura', to)
-    .eq('vinta', false)
-    .eq('persa', false)
     .or(FASI_SOLIDE.map(f => `fase_trattativa.ilike.%${f}%`).join(','))
 
   if (proprietario) q = q.eq('proprietario', proprietario)

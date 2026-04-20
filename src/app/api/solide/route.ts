@@ -16,16 +16,18 @@ export async function GET(request: NextRequest) {
 
   let q = supabase
     .from('deals')
-    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_creazione,probabilita,vinta,persa')
+    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_creazione,probabilita')
     .gte('data_chiusura', from)
     .lte('data_chiusura', to)
-    .or(FASI_SOLIDE.map(f => `fase_trattativa.ilike.%${f}%`).join(','))
 
   if (proprietario) q = q.eq('proprietario', proprietario)
 
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const sorted = (data ?? []).sort((a, b) => (b.importo || 0) - (a.importo || 0))
-  return NextResponse.json(sorted)
+  const solide = (data ?? [])
+    .filter(d => FASI_SOLIDE.some(f => d.fase_trattativa?.includes(f)))
+    .sort((a, b) => (b.importo || 0) - (a.importo || 0))
+
+  return NextResponse.json(solide)
 }

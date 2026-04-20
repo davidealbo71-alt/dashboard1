@@ -8,13 +8,21 @@ import { UploadExcel } from '@/components/UploadExcel'
 import { TopDealsTable } from '@/components/TopDealsTable'
 import { LostDealsTab } from '@/components/LostDealsTab'
 import { RecurringTab } from '@/components/RecurringTab'
+import { StalloTab } from '@/components/StalloTab'
 import { KpiData, LostData, RecurringData } from '@/types/deal'
 
 function eur(v: number) {
   return '€' + v.toLocaleString('it-IT', { maximumFractionDigits: 0 })
 }
 
-type Tab = 'dashboard' | 'opportunita' | 'persi' | 'ricorrenti'
+type Tab = 'dashboard' | 'opportunita' | 'persi' | 'ricorrenti' | 'stallo'
+
+interface StalloDeal {
+  nome_trattativa: string; azienda_associata: string; importo: number
+  importo_previsto: number; fase_trattativa: string; proprietario: string
+  data_chiusura: string | null; data_entrata_fase: string | null
+  probabilita: number; giorni_in_fase: number
+}
 
 interface TopDeal {
   nome_trattativa: string; azienda_associata: string; importo: number
@@ -27,6 +35,7 @@ export default function HomePage() {
   const [topDeals, setTopDeals] = useState<TopDeal[]>([])
   const [lostData, setLostData] = useState<LostData | null>(null)
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null)
+  const [stalloDeals, setStalloDeals] = useState<StalloDeal[]>([])
   const [loading, setLoading] = useState(true)
   const [anno, setAnno] = useState(2026)
   const [sales, setSales] = useState('')
@@ -41,19 +50,21 @@ export default function HomePage() {
   const fetchAll = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
     const qs = buildParams(year, proprietario)
-    const [kpiRes, dealsRes, lostRes, recRes] = await Promise.all([
+    const [kpiRes, dealsRes, lostRes, recRes, stalloRes] = await Promise.all([
       fetch(`/api/kpis?${qs}`),
       fetch(`/api/top-deals?${qs}`),
       fetch(`/api/lost-deals?${qs}`),
       fetch(`/api/recurring?${qs}`),
+      fetch(`/api/stallo?${qs}`),
     ])
-    const [kpiData, dealsData, lostD, recD] = await Promise.all([
-      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json()
+    const [kpiData, dealsData, lostD, recD, stalloD] = await Promise.all([
+      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json(), stalloRes.json()
     ])
     setKpi(kpiData.error ? null : kpiData)
     setTopDeals(Array.isArray(dealsData) ? dealsData : [])
     setLostData(lostD.error ? null : lostD)
     setRecurringData(recD.error ? null : recD)
+    setStalloDeals(Array.isArray(stalloD) ? stalloD : [])
     setLoading(false)
   }, [buildParams])
 
@@ -68,6 +79,7 @@ export default function HomePage() {
     { id: 'opportunita', label: 'Top Opportunità',   icon: <ListOrdered className="h-4 w-4" /> },
     { id: 'persi',       label: 'Analisi Persi',     icon: <TrendingDown className="h-4 w-4" /> },
     { id: 'ricorrenti',  label: 'Ricavi Ricorrenti', icon: <RefreshCw className="h-4 w-4" /> },
+    { id: 'stallo',      label: 'A Rischio Stallo',  icon: <AlertTriangle className="h-4 w-4" /> },
   ]
 
   return (
@@ -190,6 +202,9 @@ export default function HomePage() {
 
         {/* RICAVI RICORRENTI */}
         {!loading && tab === 'ricorrenti' && recurringData && <RecurringTab data={recurringData} />}
+
+        {/* A RISCHIO STALLO */}
+        {!loading && tab === 'stallo' && <StalloTab deals={stalloDeals} />}
       </main>
     </div>
   )

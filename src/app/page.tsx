@@ -114,7 +114,7 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <BarChart data={perBuFiltered} title="Importo — Digital Platform" mode="dual" />
+              <BarChart data={perBuFiltered} title="Importo — Digital Platform" mode="dual" hideXLabels />
               <BarChart data={kpi.per_fase} title="Trattative per Fase" mode="count" />
             </div>
 

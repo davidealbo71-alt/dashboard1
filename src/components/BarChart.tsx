@@ -24,6 +24,7 @@ interface Props {
   mode?: 'dual' | 'count'
   horizontal?: boolean
   height?: number
+  hideXLabels?: boolean
 }
 
 const COLOR_IMPORTO = '#3b82f6'
@@ -58,7 +59,7 @@ function CustomTooltip({ active, payload, label }: any) {
   )
 }
 
-export function BarChart({ data, title, mode = 'dual', horizontal = false, height = 300 }: Props) {
+export function BarChart({ data, title, mode = 'dual', horizontal = false, height = 300, hideXLabels = false }: Props) {
   if (!data.length) return null
 
   const chartData = data.map((d) => ({
@@ -93,7 +94,7 @@ export function BarChart({ data, title, mode = 'dual', horizontal = false, heigh
             </>
           ) : (
             <>
-              <XAxis dataKey="name" angle={-35} textAnchor="end" tick={tickStyle} {...axisStyle} interval={0} />
+              <XAxis dataKey="name" angle={-35} textAnchor="end" tick={hideXLabels ? false : tickStyle} {...axisStyle} interval={0} />
               <YAxis tick={tickStyle} tickFormatter={mode === 'dual' ? fmtAxis : undefined} {...axisStyle} />
             </>
           )}

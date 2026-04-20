@@ -27,13 +27,16 @@ function toInt(val: unknown): number | null {
   return isNaN(n) ? null : n
 }
 
+function toDate(val: unknown): string | null {
+  if (typeof val === 'number') return excelDateToISO(val)
+  if (typeof val === 'string' && val) return val
+  return null
+}
+
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
   const file = formData.get('file') as File
-
-  if (!file) {
-    return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 })
-  }
+  if (!file) return NextResponse.json({ error: 'Nessun file fornito' }, { status: 400 })
 
   const buffer = await file.arrayBuffer()
   const workbook = XLSX.read(buffer, { type: 'array' })
@@ -46,9 +49,8 @@ export async function POST(request: NextRequest) {
     importo: toNum(row['Importo']),
     fase_trattativa: String(row['Fase trattativa'] ?? ''),
     business_unit: String(row['Business Unit'] ?? ''),
-    data_chiusura: typeof row['Data di chiusura'] === 'number'
-      ? excelDateToISO(row['Data di chiusura'] as number)
-      : String(row['Data di chiusura'] ?? '') || null,
+    data_chiusura: toDate(row['Data di chiusura']),
+    data_entrata_fase: toDate(row['Data di entrata nella fase corrente']),
     proprietario: String(row['Proprietario della trattativa'] ?? ''),
     pipeline: String(row['Pipeline'] ?? ''),
     anno_competenza: toInt(row['Anno di Competenza']),
@@ -59,12 +61,12 @@ export async function POST(request: NextRequest) {
     probabilita: toNum(row['Probabilità trattativa']),
     service_line: String(row['Service Line'] ?? ''),
     importo_previsto: toNum(row['Importo previsto offerta']),
+    tipo_trattativa: String(row['Tipo di trattativa'] ?? ''),
+    motivo_lost: String(row['Motivo della trattativa LOST'] ?? ''),
     paese: String(row['Paese della Trattativa'] ?? ''),
   }))
 
   const supabase = getSupabase()
-
-  // Sostituisce tutti i dati esistenti
   await supabase.from('deals').delete().neq('id', '00000000-0000-0000-0000-000000000000')
 
   const BATCH = 200

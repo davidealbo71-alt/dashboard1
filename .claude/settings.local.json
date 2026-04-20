@@ -4,7 +4,11 @@
       "Bash(gh auth *)",
       "Bash(brew install *)",
       "Bash(/opt/homebrew/bin/gh auth *)",
-      "Bash(npx create-next-app@latest *)"
+      "Bash(npx create-next-app@latest *)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn@latest *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

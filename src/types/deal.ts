@@ -28,6 +28,8 @@ export interface GroupItem {
 }
 
 export interface KpiData {
+  anno: number
+  anni_disponibili: number[]
   pipeline_aperta: number
   pipeline_aperta_pesata: number
   totale_won: number

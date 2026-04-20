@@ -27,6 +27,7 @@ export default function HomePage() {
 
   const isEmpty = !kpi || kpi.totale_trattative === 0
   const perAnnoFiltered = kpi?.per_anno.filter(a => a.label !== 'N/D') ?? []
+  const perBuFiltered = kpi?.per_business_unit.filter(b => b.label === 'Digital Platform') ?? []
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -98,7 +99,7 @@ export default function HomePage() {
 
             {/* Grafici — tutti dual (Importo + Pesato) tranne Fase che è conteggio */}
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <BarChart data={kpi.per_business_unit} title="Importo per Business Unit" mode="dual" />
+              <BarChart data={perBuFiltered} title="Importo — Digital Platform" mode="dual" />
               <BarChart data={kpi.per_fase} title="Trattative per Fase" mode="count" />
             </div>
 

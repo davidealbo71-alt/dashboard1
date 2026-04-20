@@ -146,7 +146,8 @@ export default function HomePage() {
               <StatCard
                 title="Trattative Solide"
                 value={eur(kpi.trattative_solide_pesate)}
-                sub={`Non pesato: ${eur(kpi.trattative_solide)} · ${kpi.trattative_solide_count} deal`}
+                sub={`Non pesato: ${eur(kpi.trattative_solide)}`}
+                sub2={`${kpi.trattative_solide_count} deal (Committed + Negotiation)`}
                 icon={ShieldCheck}
                 color="blue"
               />

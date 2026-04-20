@@ -6,6 +6,7 @@ interface Props {
   title: string
   value: string
   sub?: string
+  sub2?: string
   icon: LucideIcon
   color: 'blue' | 'emerald' | 'amber' | 'rose'
 }
@@ -17,7 +18,7 @@ const colorMap = {
   rose:    { bg: 'bg-rose-50',    icon: 'text-rose-600',    border: 'border-l-rose-500' },
 }
 
-export function StatCard({ title, value, sub, icon: Icon, color }: Props) {
+export function StatCard({ title, value, sub, sub2, icon: Icon, color }: Props) {
   const c = colorMap[color]
   return (
     <div className={`rounded-xl border-l-4 bg-white p-5 shadow-sm ${c.border}`}>
@@ -26,6 +27,7 @@ export function StatCard({ title, value, sub, icon: Icon, color }: Props) {
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</p>
           <p className="mt-2 text-3xl font-bold text-slate-800">{value}</p>
           {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
+          {sub2 && <p className="text-xs text-slate-400">{sub2}</p>}
         </div>
         <div className={`rounded-lg p-2 ${c.bg}`}>
           <Icon className={`h-5 w-5 ${c.icon}`} />

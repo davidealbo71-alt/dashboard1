@@ -45,6 +45,12 @@ export function StalloTab({ deals }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Spiegazione */}
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 space-y-1">
+        <p><span className="font-semibold">Cos'è il Rischio Stallo?</span> Una trattativa è considerata "a rischio stallo" quando è ferma nella stessa fase commerciale da più di 60 giorni senza progressi registrati nel CRM. Queste opportunità richiedono attenzione immediata per evitare che si perdano.</p>
+        <p><span className="font-semibold">Giorni in Fase</span> indica da quanti giorni la trattativa si trova nella fase attuale senza essere avanzata. Più il numero è alto, maggiore è il rischio che l'opportunità sia bloccata o che il cliente abbia perso interesse.</p>
+      </div>
+
       {/* KPI row */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-xl bg-white border border-slate-100 shadow-sm p-5 border-l-4 border-l-amber-500">

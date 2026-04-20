@@ -99,7 +99,7 @@ export function BarChart({ data, title, mode = 'dual', horizontal = false, heigh
             </>
           )}
           <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
-          <Legend wrapperStyle={{ fontSize: 11, paddingTop: horizontal ? 8 : 0 }} />
+          {mode !== 'count' && <Legend wrapperStyle={{ fontSize: 11, paddingTop: horizontal ? 8 : 0 }} />}
 
           {mode === 'dual' ? (
             <>

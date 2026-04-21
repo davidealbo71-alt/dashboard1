@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { decrypt } from '@/lib/session'
+import { jwtVerify } from 'jose'
 
 const publicPaths = ['/login']
+
+async function verifySession(token: string) {
+  try {
+    const key = new TextEncoder().encode(process.env.SESSION_SECRET)
+    await jwtVerify(token, key, { algorithms: ['HS256'] })
+    return true
+  } catch {
+    return false
+  }
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -11,9 +21,12 @@ export async function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get('session')?.value
-  const session = token ? await decrypt(token) : null
+  const valid = token ? await verifySession(token) : false
 
-  if (!session) {
+  if (!valid) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 })
+    }
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -21,5 +34,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)', '/api/(.*)'],
 }

@@ -10,7 +10,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-white">Accedi al Dashboard</h1>
+          <h1 className="text-2xl font-semibold text-white">Accedi alla Dashboard</h1>
           <p className="text-gray-400 text-sm mt-1">Inserisci le tue credenziali per continuare</p>
         </div>
 

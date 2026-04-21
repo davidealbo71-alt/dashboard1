@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
   const year = searchParams.get('year') ?? '2026'
   const month = searchParams.get('month') ?? ''
   const proprietario = searchParams.get('proprietario') ?? ''
+  const serviceLine = searchParams.get('service_line') ?? ''
   const { from, to } = getDateRange(year, month)
   const supabase = getSupabase()
 
@@ -52,15 +53,17 @@ export async function GET(request: NextRequest) {
   const anni = [...new Set((allYears ?? []).map(r => r.data_chiusura?.slice(0, 4)).filter(Boolean))].sort()
 
   const { data: allProp } = await supabase
-    .from('deals').select('proprietario')
+    .from('deals').select('proprietario,service_line')
     .gte('data_chiusura', `${year}-01-01`).lte('data_chiusura', `${year}-12-31`)
   const proprietari = [...new Set((allProp ?? []).map(r => r.proprietario).filter(Boolean))].sort()
+  const serviceLines = [...new Set((allProp ?? []).map(r => r.service_line).filter(Boolean))].sort()
 
   let q = supabase
     .from('deals')
     .select('importo,importo_previsto,fase_trattativa,business_unit,proprietario,azienda_associata,service_line,vinta,persa,data_entrata_fase')
     .gte('data_chiusura', from).lte('data_chiusura', to)
   if (proprietario) q = q.eq('proprietario', proprietario)
+  if (serviceLine) q = q.eq('service_line', serviceLine)
 
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -90,6 +93,7 @@ export async function GET(request: NextRequest) {
     anno: Number(year),
     anni_disponibili: anni.map(Number),
     proprietari_disponibili: proprietari,
+    service_line_disponibili: serviceLines,
     pipeline_aperta: aperte.reduce((s, d) => s + (Number(d.importo) || 0), 0),
     pipeline_aperta_pesata: aperte.reduce((s, d) => s + (Number(d.importo_previsto) || 0), 0),
     totale_won: vinte.reduce((s, d) => s + (Number(d.importo) || 0), 0),

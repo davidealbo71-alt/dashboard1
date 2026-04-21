@@ -98,7 +98,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
+      <header className="bg-white border-b border-slate-200 px-6 pt-4 shadow-sm">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
@@ -153,10 +153,10 @@ export default function HomePage() {
             <UploadExcel onUploadSuccess={() => fetchAll(anno, sales)} />
           </div>
         </div>
-        <div className="mx-auto max-w-7xl mt-3 flex gap-1">
+        <div className="mx-auto max-w-7xl mt-2 flex border-b border-slate-200">
           {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${tab === t.id ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${tab === t.id ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
               {t.icon}{t.label}
             </button>
           ))}

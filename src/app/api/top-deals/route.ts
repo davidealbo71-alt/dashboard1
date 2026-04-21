@@ -14,11 +14,9 @@ export async function GET(request: NextRequest) {
 
   let query = getSupabase()
     .from('deals')
-    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,probabilita')
+    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,probabilita,vinta,persa')
     .gte('data_chiusura', from).lte('data_chiusura', to)
-    .eq('vinta', false).eq('persa', false)
     .order('importo', { ascending: false })
-    .limit(10)
 
   if (proprietario) query = query.eq('proprietario', proprietario)
   if (serviceLineFilter.length > 0) query = query.in('service_line', serviceLineFilter)
@@ -26,5 +24,9 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json(data ?? [])
+  const result = (data ?? [])
+    .filter(d => !d.vinta && !d.persa)
+    .slice(0, 10)
+
+  return NextResponse.json(result)
 }

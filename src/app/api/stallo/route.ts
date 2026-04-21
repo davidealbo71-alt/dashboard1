@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
-import { getDateRange } from '@/lib/dateRange'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,18 +8,15 @@ const STALLO_GIORNI = 60
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
-  const month = searchParams.get('month') ?? ''
   const proprietario = searchParams.get('proprietario') ?? ''
-  const { from, to } = getDateRange(year, month)
   const supabase = getSupabase()
 
+  // Stallo: filtra per anno (ignora mese — un deal bloccato è bloccato indipendentemente dal mese di chiusura previsto)
   let q = supabase
     .from('deals')
-    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_entrata_fase,data_creazione,probabilita')
-    .gte('data_chiusura', from)
-    .lte('data_chiusura', to)
-    .eq('vinta', false)
-    .eq('persa', false)
+    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_entrata_fase,data_creazione,probabilita,vinta,persa')
+    .gte('data_chiusura', `${year}-01-01`)
+    .lte('data_chiusura', `${year}-12-31`)
     .not('data_entrata_fase', 'is', null)
 
   if (proprietario) q = q.eq('proprietario', proprietario)
@@ -30,6 +26,7 @@ export async function GET(request: NextRequest) {
 
   const today = new Date()
   const stallo = (data ?? [])
+    .filter(d => !d.vinta && !d.persa)
     .map(d => ({
       ...d,
       giorni_in_fase: Math.floor((today.getTime() - new Date(d.data_entrata_fase).getTime()) / 86400000),

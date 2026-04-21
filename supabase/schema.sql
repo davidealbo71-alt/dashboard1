@@ -16,6 +16,7 @@ create table if not exists deals (
   probabilita numeric default 0,
   service_line text,
   importo_previsto numeric default 0,
+  data_creazione date,
   paese text,
   created_at timestamptz not null default now()
 );

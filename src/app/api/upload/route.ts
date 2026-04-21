@@ -78,5 +78,10 @@ export async function POST(request: NextRequest) {
     inserted += Math.min(BATCH, records.length - i)
   }
 
+  const dateMatch = file.name.match(/(\d{4}-\d{2}-\d{2})\.xlsx$/i)
+  if (dateMatch) {
+    await supabase.from('metadata').upsert({ key: 'last_import_date', value: dateMatch[1] })
+  }
+
   return NextResponse.json({ inserted })
 }

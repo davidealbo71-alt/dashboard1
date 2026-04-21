@@ -39,6 +39,7 @@ export default function HomePage() {
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null)
   const [stalloDeals, setStalloDeals] = useState<StalloDeal[]>([])
   const [solideDeals, setSolideDeals] = useState<StalloDeal[]>([])
+  const [importDate, setImportDate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [anno, setAnno] = useState(2026)
   const [mese, setMese] = useState('')
@@ -55,16 +56,17 @@ export default function HomePage() {
   const fetchAll = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
     const qs = buildParams(year, proprietario)
-    const [kpiRes, dealsRes, lostRes, recRes, stalloRes, solideRes] = await Promise.all([
+    const [kpiRes, dealsRes, lostRes, recRes, stalloRes, solideRes, metaRes] = await Promise.all([
       fetch(`/api/kpis?${qs}`),
       fetch(`/api/top-deals?${qs}`),
       fetch(`/api/lost-deals?${qs}`),
       fetch(`/api/recurring?${qs}`),
       fetch(`/api/stallo?${qs}`),
       fetch(`/api/solide?${qs}`),
+      fetch(`/api/metadata`),
     ])
-    const [kpiData, dealsData, lostD, recD, stalloD, solideD] = await Promise.all([
-      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json(), stalloRes.json(), solideRes.json()
+    const [kpiData, dealsData, lostD, recD, stalloD, solideD, metaD] = await Promise.all([
+      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json(), stalloRes.json(), solideRes.json(), metaRes.json()
     ])
     setKpi(kpiData.error ? null : kpiData)
     setTopDeals(Array.isArray(dealsData) ? dealsData : [])
@@ -72,6 +74,7 @@ export default function HomePage() {
     setRecurringData(recD.error ? null : recD)
     setStalloDeals(Array.isArray(stalloD) ? stalloD : [])
     setSolideDeals(Array.isArray(solideD) ? solideD : [])
+    setImportDate(metaD?.last_import_date ?? null)
     setLoading(false)
   }, [buildParams])
 
@@ -100,7 +103,9 @@ export default function HomePage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-800 leading-tight">Dashboard Pipeline</h1>
-              <p className="text-xs text-slate-400">HubSpot CRM · Dati aggiornati</p>
+              <p className="text-xs text-slate-400">
+                HubSpot CRM · {importDate ? `Dati al ${new Date(importDate).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })}` : 'Dati aggiornati'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">

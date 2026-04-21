@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
   let q = supabase
     .from('deals')
-    .select('importo,importo_previsto,tipo_trattativa,proprietario')
+    .select('importo,importo_previsto,tipo_trattativa,proprietario,data_chiusura')
     .gte('data_chiusura', from).lte('data_chiusura', to)
     .not('tipo_trattativa', 'is', null)
     .neq('tipo_trattativa', '')

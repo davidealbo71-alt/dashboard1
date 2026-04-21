@@ -12,6 +12,7 @@ import { LostDealsTab } from '@/components/LostDealsTab'
 import { RecurringTab } from '@/components/RecurringTab'
 import { StalloTab } from '@/components/StalloTab'
 import { SolideTab } from '@/components/SolideTab'
+import { LogoutButton } from '@/components/LogoutButton'
 import { KpiData, LostData, RecurringData } from '@/types/deal'
 
 function eur(v: number) {
@@ -151,6 +152,7 @@ export default function HomePage() {
               />
             </div>
             <UploadExcel onUploadSuccess={() => fetchAll(anno, sales)} />
+            <LogoutButton />
           </div>
         </div>
         <div className="mx-auto max-w-7xl mt-2 flex border-b border-slate-200">

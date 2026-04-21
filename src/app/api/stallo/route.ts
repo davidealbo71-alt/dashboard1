@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
   const proprietario = searchParams.get('proprietario') ?? ''
-  const serviceLine = searchParams.get('service_line') ?? ''
+  const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
   const supabase = getSupabase()
 
   // Stallo: filtra per anno (ignora mese — un deal bloccato è bloccato indipendentemente dal mese di chiusura previsto)
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     .not('data_entrata_fase', 'is', null)
 
   if (proprietario) q = q.eq('proprietario', proprietario)
-  if (serviceLine) q = q.eq('service_line', serviceLine)
+  if (serviceLineFilter.length > 0) q = q.in('service_line', serviceLineFilter)
 
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

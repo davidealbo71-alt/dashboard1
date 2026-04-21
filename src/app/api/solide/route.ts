@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const year = searchParams.get('year') ?? '2026'
   const month = searchParams.get('month') ?? ''
   const proprietario = searchParams.get('proprietario') ?? ''
-  const serviceLine = searchParams.get('service_line') ?? ''
+  const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
   const supabase = getSupabase()
 
   const { from, to } = getDateRange(year, month)
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     .lte('data_chiusura', to)
 
   if (proprietario) q = q.eq('proprietario', proprietario)
-  if (serviceLine) q = q.eq('service_line', serviceLine)
+  if (serviceLineFilter.length > 0) q = q.in('service_line', serviceLineFilter)
 
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

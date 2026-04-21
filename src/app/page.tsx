@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck, LayoutDashboard, ListOrdered, TrendingDown, RefreshCw, AlertTriangle, Users, ChevronDown, Layers } from 'lucide-react'
+import { MultiSelect } from '@/components/MultiSelect'
 import { getAvailableMonths } from '@/lib/dateRange'
 import { StatCard } from '@/components/StatCard'
 import { BarChart } from '@/components/BarChart'
@@ -44,16 +45,16 @@ export default function HomePage() {
   const [anno, setAnno] = useState(2026)
   const [mese, setMese] = useState('')
   const [sales, setSales] = useState('')
-  const [serviceLine, setServiceLine] = useState('')
+  const [serviceLines, setServiceLines] = useState<string[]>([])
   const [tab, setTab] = useState<Tab>('dashboard')
 
   const buildParams = useCallback((year: number, proprietario: string) => {
     const p = new URLSearchParams({ year: String(year) })
     if (mese) p.set('month', mese)
     if (proprietario) p.set('proprietario', proprietario)
-    if (serviceLine) p.set('service_line', serviceLine)
+    if (serviceLines.length > 0) p.set('service_line', serviceLines.join(','))
     return p.toString()
-  }, [mese, serviceLine])
+  }, [mese, serviceLines])
 
   const fetchAll = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
@@ -80,7 +81,7 @@ export default function HomePage() {
     setLoading(false)
   }, [buildParams])
 
-  useEffect(() => { fetchAll(anno, sales) }, [fetchAll, anno, mese, sales, serviceLine])
+  useEffect(() => { fetchAll(anno, sales) }, [fetchAll, anno, mese, sales, serviceLines])
 
   const isEmpty = !kpi || kpi.totale_trattative === 0
   const perBuFiltered = kpi?.per_business_unit.filter(b => b.label === 'Digital Platform') ?? []
@@ -114,11 +115,12 @@ export default function HomePage() {
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
               <Layers className="h-4 w-4 text-slate-400" />
               <span className="text-xs text-slate-500 font-medium">Service Line</span>
-              <select value={serviceLine} onChange={e => setServiceLine(e.target.value)}
-                className="bg-transparent text-sm font-semibold text-slate-700 outline-none cursor-pointer max-w-[160px]">
-                <option value="">Tutte</option>
-                {(kpi?.service_line_disponibili ?? []).map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <MultiSelect
+                options={kpi?.service_line_disponibili ?? []}
+                selected={serviceLines}
+                onChange={setServiceLines}
+                allLabel="Tutte"
+              />
             </div>
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
               <User className="h-4 w-4 text-slate-400" />

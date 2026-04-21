@@ -36,6 +36,9 @@ function faseColor(fase: string): 'default' | 'secondary' | 'outline' {
 }
 
 export function TopDealsTable({ deals }: Props) {
+  const totaleImporto = deals.reduce((s, d) => s + (d.importo || 0), 0)
+  const totalePesato = deals.reduce((s, d) => s + (d.importo_previsto || 0), 0)
+
   if (!deals.length) {
     return (
       <div className="rounded-xl bg-white border border-slate-100 p-12 text-center text-slate-400 text-sm shadow-sm">
@@ -45,6 +48,20 @@ export function TopDealsTable({ deals }: Props) {
   }
 
   return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-xl bg-white border-l-4 border-l-blue-500 border border-slate-100 shadow-sm p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Importo Totale (non pesato)</p>
+          <p className="mt-2 text-3xl font-bold text-blue-700">{eur(totaleImporto)}</p>
+          <p className="mt-1 text-xs text-slate-400">somma delle top {deals.length} opportunità</p>
+        </div>
+        <div className="rounded-xl bg-white border-l-4 border-l-emerald-500 border border-slate-100 shadow-sm p-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Importo Pesato</p>
+          <p className="mt-2 text-3xl font-bold text-emerald-700">{eur(totalePesato)}</p>
+          <p className="mt-1 text-xs text-slate-400">per probabilità di chiusura</p>
+        </div>
+      </div>
+
     <div className="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-100">
         <h2 className="text-sm font-semibold text-slate-700">Top 10 Opportunità Aperte</h2>
@@ -90,6 +107,7 @@ export function TopDealsTable({ deals }: Props) {
           ))}
         </TableBody>
       </Table>
+    </div>
     </div>
   )
 }

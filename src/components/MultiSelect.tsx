@@ -9,9 +9,10 @@ interface Props {
   onChange: (values: string[]) => void
   placeholder?: string
   allLabel?: string
+  getLabel?: (value: string) => string
 }
 
-export function MultiSelect({ options, selected, onChange, placeholder = 'Filtra...', allLabel = 'Tutte' }: Props) {
+export function MultiSelect({ options, selected, onChange, placeholder = 'Filtra...', allLabel = 'Tutte', getLabel }: Props) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -31,8 +32,8 @@ export function MultiSelect({ options, selected, onChange, placeholder = 'Filtra
   const label = selected.length === 0
     ? allLabel
     : selected.length === 1
-      ? selected[0]
-      : `${selected.length} selezionate`
+      ? (getLabel ? getLabel(selected[0]) : selected[0])
+      : `${selected.length} selezionat${allLabel === 'Tutti' ? 'i' : 'e'}`
 
   return (
     <div ref={ref} className="relative">
@@ -60,7 +61,7 @@ export function MultiSelect({ options, selected, onChange, placeholder = 'Filtra
                 onClick={() => toggle(opt)}
                 className="flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-slate-50 text-slate-700 text-left"
               >
-                <span className="truncate pr-2">{opt}</span>
+                <span className="truncate pr-2">{getLabel ? getLabel(opt) : opt}</span>
                 {selected.includes(opt) && <Check className="h-3.5 w-3.5 text-blue-600 shrink-0" />}
               </button>
             ))}

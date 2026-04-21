@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
-import { getDateRange } from '@/lib/dateRange'
+import { getDateRangeMulti } from '@/lib/dateRange'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
-  const month = searchParams.get('month') ?? ''
+  const monthsParam = (searchParams.get('month') ?? '').split(',').filter(Boolean).map(Number)
   const proprietario = searchParams.get('proprietario') ?? ''
   const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
-  const { from, to } = getDateRange(year, month)
+  const { from, to, months: selectedMonths } = getDateRangeMulti(year, monthsParam)
 
   let query = getSupabase()
     .from('deals')
@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
 
   const result = (data ?? [])
     .filter(d => !d.vinta && !d.persa)
+    .filter(d => selectedMonths.length <= 1 || (d.data_chiusura && selectedMonths.includes(new Date(d.data_chiusura).getMonth() + 1)))
     .slice(0, 10)
 
   return NextResponse.json(result)

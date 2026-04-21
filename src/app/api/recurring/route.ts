@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
 import { RecurringData } from '@/types/deal'
-import { getDateRange } from '@/lib/dateRange'
+import { getDateRangeMulti } from '@/lib/dateRange'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,10 +24,10 @@ function group(arr: Record<string, unknown>[], key: string) {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
-  const month = searchParams.get('month') ?? ''
+  const monthsParam = (searchParams.get('month') ?? '').split(',').filter(Boolean).map(Number)
   const proprietario = searchParams.get('proprietario') ?? ''
   const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
-  const { from, to } = getDateRange(year, month)
+  const { from, to, months: selectedMonths } = getDateRangeMulti(year, monthsParam)
   const supabase = getSupabase()
 
   let q = supabase
@@ -42,7 +42,12 @@ export async function GET(request: NextRequest) {
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const deals = (data ?? []) as Record<string, unknown>[]
+  const deals = (selectedMonths.length > 1
+    ? (data ?? []).filter(d => {
+        const dc = d.data_chiusura as string | null
+        return dc && selectedMonths.includes(new Date(dc).getMonth() + 1)
+      })
+    : (data ?? [])) as Record<string, unknown>[]
 
   const ricorrenti = deals.filter(d => String(d.tipo_trattativa).toLowerCase().includes('ricorr'))
   const nuovi = deals.filter(d => !String(d.tipo_trattativa).toLowerCase().includes('ricorr'))

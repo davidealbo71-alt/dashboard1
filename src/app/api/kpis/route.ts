@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
 import { GroupItem, KpiData } from '@/types/deal'
-import { getDateRange } from '@/lib/dateRange'
+import { getDateRangeMulti } from '@/lib/dateRange'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,6 +21,7 @@ type Row = {
   vinta: boolean
   persa: boolean
   data_entrata_fase: string | null
+  data_chiusura: string | null
 }
 
 function groupBy(arr: Row[], key: keyof Row): GroupItem[] {
@@ -42,10 +43,10 @@ function groupBy(arr: Row[], key: keyof Row): GroupItem[] {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
-  const month = searchParams.get('month') ?? ''
+  const monthsParam = (searchParams.get('month') ?? '').split(',').filter(Boolean).map(Number)
   const proprietario = searchParams.get('proprietario') ?? ''
   const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
-  const { from, to } = getDateRange(year, month)
+  const { from, to, months: selectedMonths } = getDateRangeMulti(year, monthsParam)
   const supabase = getSupabase()
 
   const { data: allYears } = await supabase
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
   let q = supabase
     .from('deals')
-    .select('importo,importo_previsto,fase_trattativa,business_unit,proprietario,azienda_associata,service_line,vinta,persa,data_entrata_fase')
+    .select('importo,importo_previsto,fase_trattativa,business_unit,proprietario,azienda_associata,service_line,vinta,persa,data_entrata_fase,data_chiusura')
     .gte('data_chiusura', from).lte('data_chiusura', to)
   if (proprietario) q = q.eq('proprietario', proprietario)
   if (serviceLineFilter.length > 0) q = q.in('service_line', serviceLineFilter)
@@ -68,7 +69,13 @@ export async function GET(request: NextRequest) {
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const deals = (data ?? []) as Row[]
+  const deals = (selectedMonths.length > 1
+    ? (data ?? []).filter(d => {
+        if (!d.data_chiusura) return false
+        const m = new Date(d.data_chiusura).getMonth() + 1
+        return selectedMonths.includes(m)
+      })
+    : (data ?? [])) as Row[]
   const aperte = deals.filter(d => !d.vinta && !d.persa)
   const vinte = deals.filter(d => d.vinta)
   const chiuse = deals.filter(d => d.vinta || d.persa)

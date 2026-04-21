@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabase } from '@/lib/supabase'
-import { getDateRange } from '@/lib/dateRange'
+import { getDateRangeMulti } from '@/lib/dateRange'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,12 +9,12 @@ const FASI_SOLIDE = ['Committed', 'Negotiation']
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const year = searchParams.get('year') ?? '2026'
-  const month = searchParams.get('month') ?? ''
+  const monthsParam = (searchParams.get('month') ?? '').split(',').filter(Boolean).map(Number)
   const proprietario = searchParams.get('proprietario') ?? ''
   const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
   const supabase = getSupabase()
 
-  const { from, to } = getDateRange(year, month)
+  const { from, to, months: selectedMonths } = getDateRangeMulti(year, monthsParam)
 
   let q = supabase
     .from('deals')
@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const solide = (data ?? [])
+    .filter(d => selectedMonths.length <= 1 || (d.data_chiusura && selectedMonths.includes(new Date(d.data_chiusura).getMonth() + 1)))
     .filter(d => !d.vinta && !d.persa)
     .filter(d => FASI_SOLIDE.some(f => d.fase_trattativa?.includes(f)))
     .sort((a, b) => (b.importo || 0) - (a.importo || 0))

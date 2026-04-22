@@ -87,6 +87,11 @@ Sistema login completo con pagina `/login` come prima schermata del sito.
 
 **URL produzione:** https://dashboard1-fawn-one.vercel.app
 
+## Fix login produzione (2026-04-22)
+Le env var `AUTH_USERNAME`, `AUTH_PASSWORD`, `SESSION_SECRET` erano state aggiunte su Vercel con
+`echo "value" |` che aggiunge un trailing newline, causando il fallimento del confronto credenziali.
+**Fix:** usare sempre `printf "value" |` (senza newline) per passare valori a `vercel env add`.
+
 ## How to apply
 Deploy attivo su Vercel — ogni push su main triggera deploy automatico, oppure `vercel --prod` da CLI.
-Alla prossima sessione verificare nuove funzionalità richieste.
+Usare `printf` (non `echo`) per passare env var a Vercel CLI.

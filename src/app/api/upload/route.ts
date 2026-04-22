@@ -43,29 +43,46 @@ export async function POST(request: NextRequest) {
   const sheet = workbook.Sheets[workbook.SheetNames[0]]
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet)
 
-  const records = rows.map((row) => ({
-    id_record: String(row['ID record'] ?? ''),
-    nome_trattativa: String(row['Nome trattativa'] ?? ''),
-    importo: toNum(row['Importo']),
-    fase_trattativa: String(row['Fase trattativa'] ?? ''),
-    business_unit: String(row['Business Unit'] ?? ''),
-    data_chiusura: toDate(row['Data di chiusura']),
-    data_entrata_fase: toDate(row['Data di entrata nella fase corrente']),
-    proprietario: String(row['Proprietario della trattativa'] ?? ''),
-    pipeline: String(row['Pipeline'] ?? ''),
-    anno_competenza: toInt(row['Anno di Competenza']),
-    azienda_associata: String(row['Azienda Associata'] ?? ''),
-    vinta: toBool(row['È con chiusura vinta']),
-    persa: toBool(row['È con chiusura persa']),
-    categoria_previsione: String(row['Categoria di previsione'] ?? ''),
-    probabilita: toNum(row['Probabilità trattativa']),
-    service_line: String(row['Service Line'] ?? ''),
-    importo_previsto: toNum(row['Importo previsto offerta']),
-    data_creazione: toDate(row['Data di creazione']),
-    tipo_trattativa: String(row['Tipo di trattativa'] ?? ''),
-    motivo_lost: String(row['Motivo della trattativa LOST'] ?? ''),
-    paese: String(row['Paese della Trattativa'] ?? ''),
-  }))
+  function pick(row: Record<string, unknown>, ...keys: string[]): unknown {
+    for (const k of keys) if (row[k] !== undefined && row[k] !== null) return row[k]
+    return undefined
+  }
+
+  const records = rows.map((row) => {
+    const fase = String(pick(row, 'Fase trattativa') ?? '')
+    const dataChiusura = toDate(pick(row, 'Data di chiusura', 'Data di chiusura - Giornaliero'))
+    const annoFromData = dataChiusura ? parseInt(dataChiusura.substring(0, 4)) || null : null
+
+    const vintaRaw = pick(row, 'È con chiusura vinta')
+    const persa_raw = pick(row, 'È con chiusura persa')
+
+    const vinta = vintaRaw !== undefined ? toBool(vintaRaw) : fase.toUpperCase().includes('WON')
+    const persa = persa_raw !== undefined ? toBool(persa_raw) : fase.toUpperCase().includes('LOST')
+
+    return {
+      id_record: String(pick(row, 'ID record', 'ID RECORD (Testo)') ?? ''),
+      nome_trattativa: String(pick(row, 'Nome trattativa') ?? ''),
+      importo: toNum(pick(row, 'Importo')),
+      fase_trattativa: fase,
+      business_unit: String(pick(row, 'Business Unit') ?? ''),
+      data_chiusura: dataChiusura,
+      data_entrata_fase: toDate(pick(row, 'Data di entrata nella fase corrente')),
+      proprietario: String(pick(row, 'Proprietario della trattativa') ?? ''),
+      pipeline: String(pick(row, 'Pipeline') ?? ''),
+      anno_competenza: toInt(pick(row, 'Anno di Competenza')) ?? annoFromData,
+      azienda_associata: String(pick(row, 'Azienda Associata') ?? ''),
+      vinta,
+      persa,
+      categoria_previsione: String(pick(row, 'Categoria di previsione') ?? ''),
+      probabilita: toNum(pick(row, 'Probabilità trattativa')),
+      service_line: String(pick(row, 'Service Line') ?? ''),
+      importo_previsto: toNum(pick(row, 'Importo previsto offerta')),
+      data_creazione: toDate(pick(row, 'Data di creazione', 'Data di creazione - Giornaliero')),
+      tipo_trattativa: String(pick(row, 'Tipo di trattativa') ?? ''),
+      motivo_lost: String(pick(row, 'Motivo della trattativa LOST') ?? ''),
+      paese: String(pick(row, 'Paese della Trattativa') ?? ''),
+    }
+  })
 
   const supabase = getSupabase()
   await supabase.from('deals').delete().neq('id', '00000000-0000-0000-0000-000000000000')
@@ -78,7 +95,7 @@ export async function POST(request: NextRequest) {
     inserted += Math.min(BATCH, records.length - i)
   }
 
-  const dateMatch = file.name.match(/(\d{4}-\d{2}-\d{2})\.xlsx$/i)
+  const dateMatch = file.name.match(/(\d{4}-\d{2}-\d{2})/)
   if (dateMatch) {
     await supabase.from('metadata').upsert({ key: 'last_import_date', value: dateMatch[1] })
   }

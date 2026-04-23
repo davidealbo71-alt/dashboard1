@@ -12,7 +12,24 @@
       "Bash(/opt/homebrew/bin/gh repo *)",
       "Bash(node *)",
       "Bash(npm run *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(curl -s \"http://localhost:3000/api/stallo?year=2026\")",
+      "Bash(curl -s \"http://localhost:3000/api/solide?year=2026\")",
+      "Bash(vercel --version)",
+      "Bash(curl *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'{len\\(d\\)} risultati'\\); [print\\(f\\\\\"  {x['nome_trattativa'][:40]} - {x['importo']}\\\\\"\\) for x in d]\")",
+      "Bash(openssl rand *)",
+      "Bash(npx tsc *)",
+      "Bash(kill 49663)",
+      "Bash(vercel ls *)",
+      "Bash(npx vercel *)",
+      "Bash(git *)",
+      "Bash(vercel env *)",
+      "Bash(vercel *)",
+      "Bash(mkdir -p /Users/davidealbo/Documents/Coding/Claude/dashboard1/.claude/memory)",
+      "Bash(cp /Users/davidealbo/.claude/projects/-Users-davidealbo-Documents-Coding-Claude-dashboard1/memory/project_dashboard1.md /Users/davidealbo/Documents/Coding/Claude/dashboard1/.claude/memory/project_dashboard1.md)",
+      "Bash(cp /Users/davidealbo/.claude/projects/-Users-davidealbo-Documents-Coding-Claude-dashboard1/memory/MEMORY.md /Users/davidealbo/Documents/Coding/Claude/dashboard1/.claude/memory/MEMORY.md)",
+      "Bash(pkill -f \"next dev\")"
     ]
   }
 }

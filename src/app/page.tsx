@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck, LayoutDashboard, ListOrdered, TrendingDown, RefreshCw, AlertTriangle, Users, ChevronDown, Layers } from 'lucide-react'
+import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck, ShieldAlert, LayoutDashboard, ListOrdered, TrendingDown, RefreshCw, AlertTriangle, Users, ChevronDown, Layers } from 'lucide-react'
 import { MultiSelect } from '@/components/MultiSelect'
 import { getAvailableMonths } from '@/lib/dateRange'
 import { StatCard } from '@/components/StatCard'
@@ -12,6 +12,7 @@ import { LostDealsTab } from '@/components/LostDealsTab'
 import { RecurringTab } from '@/components/RecurringTab'
 import { StalloTab } from '@/components/StalloTab'
 import { SolideTab } from '@/components/SolideTab'
+import { NonSolideTab } from '@/components/NonSolideTab'
 import { LogoutButton } from '@/components/LogoutButton'
 import { KpiData, LostData, RecurringData } from '@/types/deal'
 
@@ -19,7 +20,7 @@ function eur(v: number) {
   return '€' + v.toLocaleString('it-IT', { maximumFractionDigits: 0 })
 }
 
-type Tab = 'dashboard' | 'opportunita' | 'persi' | 'ricorrenti' | 'stallo' | 'solide'
+type Tab = 'dashboard' | 'opportunita' | 'persi' | 'ricorrenti' | 'stallo' | 'solide' | 'nonsolide'
 
 interface StalloDeal {
   nome_trattativa: string; azienda_associata: string; importo: number
@@ -41,6 +42,7 @@ export default function HomePage() {
   const [recurringData, setRecurringData] = useState<RecurringData | null>(null)
   const [stalloDeals, setStalloDeals] = useState<StalloDeal[]>([])
   const [solideDeals, setSolideDeals] = useState<StalloDeal[]>([])
+  const [nonSolideDeals, setNonSolideDeals] = useState<StalloDeal[]>([])
   const [importDate, setImportDate] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [anno, setAnno] = useState(2026)
@@ -60,17 +62,18 @@ export default function HomePage() {
   const fetchAll = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
     const qs = buildParams(year, proprietario)
-    const [kpiRes, dealsRes, lostRes, recRes, stalloRes, solideRes, metaRes] = await Promise.all([
+    const [kpiRes, dealsRes, lostRes, recRes, stalloRes, solideRes, nonSolideRes, metaRes] = await Promise.all([
       fetch(`/api/kpis?${qs}`),
       fetch(`/api/top-deals?${qs}`),
       fetch(`/api/lost-deals?${qs}`),
       fetch(`/api/recurring?${qs}`),
       fetch(`/api/stallo?${qs}`),
       fetch(`/api/solide?${qs}`),
+      fetch(`/api/non-solide?${qs}`),
       fetch(`/api/metadata`),
     ])
-    const [kpiData, dealsData, lostD, recD, stalloD, solideD, metaD] = await Promise.all([
-      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json(), stalloRes.json(), solideRes.json(), metaRes.json()
+    const [kpiData, dealsData, lostD, recD, stalloD, solideD, nonSolideD, metaD] = await Promise.all([
+      kpiRes.json(), dealsRes.json(), lostRes.json(), recRes.json(), stalloRes.json(), solideRes.json(), nonSolideRes.json(), metaRes.json()
     ])
     setKpi(kpiData.error ? null : kpiData)
     setTopDeals(Array.isArray(dealsData) ? dealsData : [])
@@ -78,6 +81,7 @@ export default function HomePage() {
     setRecurringData(recD.error ? null : recD)
     setStalloDeals(Array.isArray(stalloD) ? stalloD : [])
     setSolideDeals(Array.isArray(solideD) ? solideD : [])
+    setNonSolideDeals(Array.isArray(nonSolideD) ? nonSolideD : [])
     setImportDate(metaD?.last_import_date ?? null)
     setLoading(false)
   }, [buildParams])
@@ -94,7 +98,8 @@ export default function HomePage() {
     { id: 'persi',       label: 'Analisi Persi',     icon: <TrendingDown className="h-4 w-4" /> },
     { id: 'ricorrenti',  label: 'Ricavi Ricorrenti', icon: <RefreshCw className="h-4 w-4" /> },
     { id: 'stallo',      label: 'A Rischio Stallo',  icon: <AlertTriangle className="h-4 w-4" /> },
-    { id: 'solide',      label: 'Trattative Solide', icon: <ShieldCheck className="h-4 w-4" /> },
+    { id: 'solide',      label: 'Trattative Solide',     icon: <ShieldCheck className="h-4 w-4" /> },
+    { id: 'nonsolide',   label: 'Trattative Non Solide', icon: <ShieldAlert className="h-4 w-4" /> },
   ]
 
   return (
@@ -247,6 +252,9 @@ export default function HomePage() {
 
         {/* TRATTATIVE SOLIDE */}
         {!loading && tab === 'solide' && <SolideTab deals={solideDeals} />}
+
+        {/* TRATTATIVE NON SOLIDE */}
+        {!loading && tab === 'nonsolide' && <NonSolideTab deals={nonSolideDeals} />}
       </main>
     </div>
   )

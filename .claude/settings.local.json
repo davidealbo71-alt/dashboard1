@@ -29,7 +29,11 @@
       "Bash(mkdir -p /Users/davidealbo/Documents/Coding/Claude/dashboard1/.claude/memory)",
       "Bash(cp /Users/davidealbo/.claude/projects/-Users-davidealbo-Documents-Coding-Claude-dashboard1/memory/project_dashboard1.md /Users/davidealbo/Documents/Coding/Claude/dashboard1/.claude/memory/project_dashboard1.md)",
       "Bash(cp /Users/davidealbo/.claude/projects/-Users-davidealbo-Documents-Coding-Claude-dashboard1/memory/MEMORY.md /Users/davidealbo/Documents/Coding/Claude/dashboard1/.claude/memory/MEMORY.md)",
-      "Bash(pkill -f \"next dev\")"
+      "Bash(pkill -f \"next dev\")",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/.bin/next build *)",
+      "Bash(wait)",
+      "Bash(ls node_modules/.bin/next)"
     ]
   }
 }

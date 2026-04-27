@@ -1,8 +1,11 @@
 'use client'
 
-import { Trophy } from 'lucide-react'
+import { useState } from 'react'
+import { Trophy, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+const PAGE_SIZE = 20
 
 interface WonDeal {
   nome_trattativa: string
@@ -36,6 +39,14 @@ function topPerSales(deals: WonDeal[]) {
 }
 
 export function WonTab({ deals }: Props) {
+  const [page, setPage] = useState(1)
+
+  const sorted = [...deals].sort((a, b) =>
+    (a.nome_trattativa ?? '').localeCompare(b.nome_trattativa ?? '', 'it')
+  )
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE))
+  const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
   const totaleImporto = deals.reduce((s, d) => s + (d.importo || 0), 0)
   const importoMedio = deals.length ? totaleImporto / deals.length : 0
   const perSales = topPerSales(deals)
@@ -111,7 +122,7 @@ export function WonTab({ deals }: Props) {
         <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
           <Trophy className="h-4 w-4 text-emerald-500" />
           <h2 className="text-sm font-semibold text-slate-700">Dettaglio Trattative WON</h2>
-          <span className="ml-auto text-xs text-slate-400">Ordinate per data chiusura (più recente)</span>
+          <span className="ml-auto text-xs text-slate-400">Ordinate alfabeticamente · {deals.length} totali</span>
         </div>
         <Table>
           <TableHeader>
@@ -126,7 +137,7 @@ export function WonTab({ deals }: Props) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {deals.map((d, i) => (
+            {paginated.map((d, i) => (
               <TableRow key={i} className="hover:bg-emerald-50/40">
                 <TableCell className="text-xs font-medium text-slate-700 max-w-[200px] truncate">{d.nome_trattativa || '—'}</TableCell>
                 <TableCell className="text-xs text-slate-600 max-w-[140px] truncate">{d.azienda_associata || '—'}</TableCell>
@@ -147,6 +158,51 @@ export function WonTab({ deals }: Props) {
             ))}
           </TableBody>
         </Table>
+
+        {/* Paginazione */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
+            <span className="text-xs text-slate-400">
+              Pagina {page} di {totalPages} · righe {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, sorted.length)} di {sorted.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(n => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
+                .reduce<(number | '...')[]>((acc, n, idx, arr) => {
+                  if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push('...')
+                  acc.push(n)
+                  return acc
+                }, [])
+                .map((n, idx) =>
+                  n === '...' ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-xs text-slate-400">…</span>
+                  ) : (
+                    <button
+                      key={n}
+                      onClick={() => setPage(n as number)}
+                      className={`min-w-[28px] rounded-md px-2 py-1 text-xs font-medium transition-colors ${page === n ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}
+                    >
+                      {n}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

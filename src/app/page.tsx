@@ -204,6 +204,12 @@ export default function HomePage() {
               </div>
             ) : kpi && (
               <>
+                {/* Row 0 — Totale complessivo (non pesato + pesato) */}
+                <div className="grid grid-cols-2 gap-4">
+                  <StatCard title="Totale Pipeline (non pesato)" value={eur(kpi.pipeline_aperta + kpi.totale_won)} sub={`Aperta: ${eur(kpi.pipeline_aperta)} · WON: ${eur(kpi.totale_won)}`} icon={TrendingUp} color="blue" />
+                  <StatCard title="Totale Pipeline (pesato)" value={eur(kpi.pipeline_aperta_pesata + kpi.totale_won_pesato)} sub={`Aperta: ${eur(kpi.pipeline_aperta_pesata)} · WON: ${eur(kpi.totale_won_pesato)}`} icon={Target} color="emerald" />
+                </div>
+
                 {/* Row 1 KPI — 4 card */}
                 <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                   <StatCard title="Pipeline Aperta" value={eur(kpi.pipeline_aperta_pesata)} sub={`Non pesato: ${eur(kpi.pipeline_aperta)}`} icon={TrendingUp} color="blue" />

@@ -45,17 +45,19 @@ L'header mostra "Dati al GG mese AAAA" in base all'ultimo import.
 - Tab navigation: underline blue sul tab attivo
 
 ## Schede implementate
-1. **Dashboard**: KPI principali + grafici (funnel, fasi, clienti, service line, proprietari)
+1. **Dashboard**: KPI principali + grafici (funnel, fasi, clienti, service line, proprietari). In cima: due card "Totale Pipeline (non pesato)" e "Totale Pipeline (pesato)" = pipeline_aperta + totale_won (calcolato in componente, senza modifiche API)
 2. **Top Opportunità**: KPI importo totale + pesato + tabella top 10
 3. **Analisi Persi**: breakdown deal persi per sales/cliente/motivo
 4. **Ricavi Ricorrenti**: split ricorrente vs nuovo
 5. **A Rischio Stallo**: deal aperti fermi in fase >60gg — filtra per anno (ignora mese)
-6. **Trattative Solide**: deal in fase Committed/Negotiation
+6. **Trattative Solide**: deal in fase Committed/Negotiation. KPI "Importo Totale": valore principale = pesato, sub = non pesato
+7. **Trattative Non Solide**: deal aperti NON in Committed/Negotiation, ordinati per data chiusura prevista (più vicina). KPI "Importo Totale": valore principale = pesato, sub = non pesato
+8. **Trattative WON**: deal vinti. Tabella ordinata alfabeticamente per nome_trattativa, paginata 20 righe/pagina con controlli prev/next e numeri di pagina
 
 ## API routes
 - /api/kpis — KPI + proprietari_disponibili + service_line_disponibili
 - /api/top-deals — top 10 deal aperti (filtro vinta/persa in JS)
-- /api/lost-deals, /api/recurring, /api/solide — stesse convenzioni
+- /api/lost-deals, /api/recurring, /api/solide, /api/non-solide, /api/won — stesse convenzioni
 - /api/stallo — filtra per anno, ignora mese
 - /api/metadata — last_import_date
 - /api/upload — import Excel, estrae data dal filename

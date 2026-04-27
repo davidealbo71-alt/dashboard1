@@ -60,8 +60,8 @@ export function SolideTab({ deals }: Props) {
         </div>
         <div className="rounded-xl bg-white border border-slate-100 shadow-sm p-5 border-l-4 border-l-blue-400">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Importo Totale</p>
-          <p className="mt-2 text-3xl font-bold text-slate-800">{eur(totaleImporto)}</p>
-          <p className="mt-1 text-xs text-slate-400">Pesato: {eur(totalePesato)}</p>
+          <p className="mt-2 text-3xl font-bold text-slate-800">{eur(totalePesato)}</p>
+          <p className="mt-1 text-xs text-slate-400">Non pesato: {eur(totaleImporto)}</p>
         </div>
         <div className="rounded-xl bg-white border border-slate-100 shadow-sm p-5 border-l-4 border-l-emerald-400">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">In Negotiation</p>

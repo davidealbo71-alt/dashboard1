@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
   const monthsParam = (searchParams.get('month') ?? '').split(',').filter(Boolean).map(Number)
   const proprietario = searchParams.get('proprietario') ?? ''
   const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
+  const faseFilter = (searchParams.get('fase_trattativa') ?? '').split(',').filter(Boolean)
   const { from, to, months: selectedMonths } = getDateRangeMulti(year, monthsParam)
 
   let query = getSupabase()
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
 
   if (proprietario) query = query.eq('proprietario', proprietario)
   if (serviceLineFilter.length > 0) query = query.in('service_line', serviceLineFilter)
+  if (faseFilter.length > 0) query = query.in('fase_trattativa', faseFilter)
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

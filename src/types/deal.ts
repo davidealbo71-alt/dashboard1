@@ -35,6 +35,7 @@ export interface KpiData {
   anni_disponibili: number[]
   proprietari_disponibili: string[]
   service_line_disponibili: string[]
+  fasi_disponibili: string[]
   pipeline_aperta: number
   pipeline_aperta_pesata: number
   totale_won: number

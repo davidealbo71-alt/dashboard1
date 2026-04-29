@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck, ShieldAlert, LayoutDashboard, ListOrdered, TrendingDown, RefreshCw, AlertTriangle, Users, ChevronDown, Layers } from 'lucide-react'
+import { TrendingUp, Trophy, Target, BarChart2, Calendar, User, ShieldCheck, ShieldAlert, LayoutDashboard, ListOrdered, TrendingDown, RefreshCw, AlertTriangle, Users, ChevronDown, Layers, Filter } from 'lucide-react'
 import { MultiSelect } from '@/components/MultiSelect'
 import { getAvailableMonths } from '@/lib/dateRange'
 import { StatCard } from '@/components/StatCard'
@@ -58,6 +58,7 @@ export default function HomePage() {
   const [mesi, setMesi] = useState<string[]>([])
   const [sales, setSales] = useState('')
   const [serviceLines, setServiceLines] = useState<string[]>([])
+  const [fasi, setFasi] = useState<string[]>([])
   const [tab, setTab] = useState<Tab>('dashboard')
 
   const buildParams = useCallback((year: number, proprietario: string) => {
@@ -65,8 +66,9 @@ export default function HomePage() {
     if (mesi.length > 0) p.set('month', mesi.join(','))
     if (proprietario) p.set('proprietario', proprietario)
     if (serviceLines.length > 0) p.set('service_line', serviceLines.join(','))
+    if (fasi.length > 0) p.set('fase_trattativa', fasi.join(','))
     return p.toString()
-  }, [mesi, serviceLines])
+  }, [mesi, serviceLines, fasi])
 
   const fetchAll = useCallback(async (year: number, proprietario: string) => {
     setLoading(true)
@@ -97,7 +99,7 @@ export default function HomePage() {
     setLoading(false)
   }, [buildParams])
 
-  useEffect(() => { fetchAll(anno, sales) }, [fetchAll, anno, mesi, sales, serviceLines])
+  useEffect(() => { fetchAll(anno, sales) }, [fetchAll, anno, mesi, sales, serviceLines, fasi])
 
   const isEmpty = !kpi || kpi.totale_trattative === 0
   const perBuFiltered = kpi?.per_business_unit.filter(b => b.label === 'Digital Platform') ?? []
@@ -131,6 +133,16 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <Filter className="h-4 w-4 text-slate-400" />
+              <span className="text-xs text-slate-500 font-medium">Fase</span>
+              <MultiSelect
+                options={kpi?.fasi_disponibili ?? []}
+                selected={fasi}
+                onChange={setFasi}
+                allLabel="Tutte"
+              />
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
               <Layers className="h-4 w-4 text-slate-400" />
               <span className="text-xs text-slate-500 font-medium">Service Line</span>
               <MultiSelect
@@ -152,7 +164,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
               <Calendar className="h-4 w-4 text-slate-400" />
               <span className="text-xs text-slate-500 font-medium">Anno</span>
-              <select value={anno} onChange={e => { setAnno(Number(e.target.value)); setMesi([]); setSales('') }}
+              <select value={anno} onChange={e => { setAnno(Number(e.target.value)); setMesi([]); setSales(''); setFasi([]) }}
                 className="bg-transparent text-sm font-semibold text-slate-700 outline-none cursor-pointer">
                 {(kpi?.anni_disponibili ?? [anno]).map(y => <option key={y} value={y}>{y}</option>)}
               </select>

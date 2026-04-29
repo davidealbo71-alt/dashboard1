@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
   const monthsParam = (searchParams.get('month') ?? '').split(',').filter(Boolean).map(Number)
   const proprietario = searchParams.get('proprietario') ?? ''
   const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
+  const faseFilter = (searchParams.get('fase_trattativa') ?? '').split(',').filter(Boolean)
   const { from, to, months: selectedMonths } = getDateRangeMulti(year, monthsParam)
   const supabase = getSupabase()
 
@@ -54,10 +55,11 @@ export async function GET(request: NextRequest) {
   const anni = [...new Set((allYears ?? []).map(r => r.data_chiusura?.slice(0, 4)).filter(Boolean))].sort()
 
   const { data: allProp } = await supabase
-    .from('deals').select('proprietario,service_line')
+    .from('deals').select('proprietario,service_line,fase_trattativa')
     .gte('data_chiusura', `${year}-01-01`).lte('data_chiusura', `${year}-12-31`)
   const proprietari = [...new Set((allProp ?? []).map(r => r.proprietario).filter(Boolean))].sort()
   const serviceLines = [...new Set((allProp ?? []).map(r => r.service_line).filter(Boolean))].sort()
+  const fasiDisponibili = [...new Set((allProp ?? []).map(r => r.fase_trattativa).filter(Boolean))].sort()
 
   let q = supabase
     .from('deals')
@@ -65,6 +67,7 @@ export async function GET(request: NextRequest) {
     .gte('data_chiusura', from).lte('data_chiusura', to)
   if (proprietario) q = q.eq('proprietario', proprietario)
   if (serviceLineFilter.length > 0) q = q.in('service_line', serviceLineFilter)
+  if (faseFilter.length > 0) q = q.in('fase_trattativa', faseFilter)
 
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -101,6 +104,7 @@ export async function GET(request: NextRequest) {
     anni_disponibili: anni.map(Number),
     proprietari_disponibili: proprietari,
     service_line_disponibili: serviceLines,
+    fasi_disponibili: fasiDisponibili,
     pipeline_aperta: aperte.reduce((s, d) => s + (Number(d.importo) || 0), 0),
     pipeline_aperta_pesata: aperte.reduce((s, d) => s + (Number(d.importo_previsto) || 0), 0),
     totale_won: vinte.reduce((s, d) => s + (Number(d.importo) || 0), 0),

@@ -48,6 +48,10 @@ export async function GET(request: NextRequest) {
   const serviceLineFilter = (searchParams.get('service_line') ?? '').split(',').filter(Boolean)
   const faseFilter = (searchParams.get('fase_trattativa') ?? '').split(',').filter(Boolean)
   const { from, to, months: selectedMonths } = getDateRangeMulti(year, monthsParam)
+  // LOST conta sempre da inizio anno, indipendentemente dal filtro mese
+  const isLostOnly = faseFilter.includes('LOST')
+  const effectiveFrom = isLostOnly ? `${year}-01-01` : from
+  const effectiveTo = isLostOnly ? `${year}-12-31` : to
   const supabase = getSupabase()
 
   const { data: allYears } = await supabase
@@ -64,7 +68,7 @@ export async function GET(request: NextRequest) {
   let q = supabase
     .from('deals')
     .select('importo,importo_previsto,fase_trattativa,business_unit,proprietario,azienda_associata,service_line,vinta,persa,data_entrata_fase,data_chiusura')
-    .gte('data_chiusura', from).lte('data_chiusura', to)
+    .gte('data_chiusura', effectiveFrom).lte('data_chiusura', effectiveTo)
   if (proprietario) q = q.eq('proprietario', proprietario)
   if (serviceLineFilter.length > 0) q = q.in('service_line', serviceLineFilter)
   if (faseFilter.length > 0) q = q.in('fase_trattativa', faseFilter)
@@ -72,7 +76,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const deals = (selectedMonths.length > 1
+  const deals = (!isLostOnly && selectedMonths.length > 1
     ? (data ?? []).filter(d => {
         if (!d.data_chiusura) return false
         const m = new Date(d.data_chiusura).getMonth() + 1

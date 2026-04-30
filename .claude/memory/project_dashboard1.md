@@ -26,7 +26,12 @@ importo_previsto, tipo_trattativa, motivo_lost, paese, created_at.
 
 Tabella `metadata`: key (PK), value — usata per salvare last_import_date.
 
-Migrations applicate: migrate_v2.sql, migrate_v3.sql (data_creazione), migrate_v4.sql (metadata).
+Migrations applicate: migrate_v2.sql, migrate_v3.sql (data_creazione), migrate_v4.sql (metadata), migrate_v5.sql (margine).
+
+Colonna `margine numeric default null`: aggiunta 2026-04-30. Letta dall'Excel come `'Margine %'`
+con `toNumNull` (null se vuota). HubSpot la esporta come decimale (0.35 = 35%).
+Visualizzazione: `(d.margine * 100).toFixed(1) + '%'`. Soglie colore: verde ≥30%, ambra 20–29%, rosso <20%.
+Presente nelle tabelle di: TopDealsTable, SolideTab, NonSolideTab, StalloTab, WonTab.
 
 ## Sorgente dati
 File Excel HubSpot CRM export. Nome file formato: `hubspot-crm-exports-...-YYYY-MM-DD.xlsx`

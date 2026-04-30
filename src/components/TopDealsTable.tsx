@@ -32,8 +32,8 @@ function eur(v: number) {
 
 function margineColor(m: number | null) {
   if (m == null) return 'text-slate-400'
-  if (m >= 40) return 'text-emerald-600 font-semibold'
-  if (m >= 20) return 'text-amber-600'
+  if (m >= 0.30) return 'text-emerald-600 font-semibold'
+  if (m >= 0.20) return 'text-amber-600'
   return 'text-rose-600'
 }
 
@@ -110,7 +110,7 @@ export function TopDealsTable({ deals }: Props) {
                 </span>
               </TableCell>
               <TableCell className={`text-xs text-right whitespace-nowrap ${margineColor(d.margine)}`}>
-                {d.margine != null ? d.margine.toFixed(1) + '%' : '—'}
+                {d.margine != null ? (d.margine * 100).toFixed(1) + '%' : '—'}
               </TableCell>
               <TableCell className="text-xs text-slate-500 text-right whitespace-nowrap">
                 {d.data_chiusura ? new Date(d.data_chiusura).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}

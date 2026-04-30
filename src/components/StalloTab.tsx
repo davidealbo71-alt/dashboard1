@@ -16,12 +16,20 @@ interface StalloDeal {
   data_creazione: string | null
   probabilita: number
   giorni_in_fase: number
+  margine: number | null
 }
 
 interface Props { deals: StalloDeal[] }
 
 function eur(v: number) {
   return '€' + v.toLocaleString('it-IT', { maximumFractionDigits: 0 })
+}
+
+function margineColor(m: number | null) {
+  if (m == null) return 'text-slate-400'
+  if (m >= 40) return 'text-emerald-600 font-semibold'
+  if (m >= 20) return 'text-amber-600'
+  return 'text-rose-600'
 }
 
 function giornoColor(g: number) {
@@ -95,6 +103,7 @@ export function StalloTab({ deals }: Props) {
               <TableHead className="text-xs text-right">Data Apertura</TableHead>
               <TableHead className="text-xs text-right">Importo</TableHead>
               <TableHead className="text-xs text-right">Pesato</TableHead>
+              <TableHead className="text-xs text-right">Margine %</TableHead>
               <TableHead className="text-xs text-right">Giorni in Fase</TableHead>
               <TableHead className="text-xs text-right">Chiusura Prev.</TableHead>
             </TableRow>
@@ -113,6 +122,9 @@ export function StalloTab({ deals }: Props) {
                 </TableCell>
                 <TableCell className="text-xs font-semibold text-slate-700 text-right whitespace-nowrap">{eur(d.importo)}</TableCell>
                 <TableCell className="text-xs text-slate-500 text-right whitespace-nowrap">{eur(d.importo_previsto)}</TableCell>
+                <TableCell className={`text-xs text-right whitespace-nowrap ${margineColor(d.margine)}`}>
+                  {d.margine != null ? d.margine.toFixed(1) + '%' : '—'}
+                </TableCell>
                 <TableCell className={`text-xs text-right whitespace-nowrap ${giornoColor(d.giorni_in_fase)}`}>
                   {d.giorni_in_fase} gg
                 </TableCell>

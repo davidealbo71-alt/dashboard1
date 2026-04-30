@@ -20,6 +20,7 @@ export interface Deal {
   tipo_trattativa: string
   motivo_lost: string
   paese: string
+  margine: number | null
   created_at: string
 }
 

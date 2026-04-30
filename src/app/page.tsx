@@ -27,20 +27,20 @@ interface StalloDeal {
   nome_trattativa: string; azienda_associata: string; importo: number
   importo_previsto: number; fase_trattativa: string; proprietario: string
   data_chiusura: string | null; data_entrata_fase: string | null; data_creazione: string | null
-  probabilita: number; giorni_in_fase: number
+  probabilita: number; giorni_in_fase: number; margine: number | null
 }
 
 interface WonDeal {
   nome_trattativa: string; azienda_associata: string; importo: number
   importo_previsto: number; fase_trattativa: string; proprietario: string
   data_chiusura: string | null; data_creazione: string | null
-  probabilita: number; service_line: string | null
+  probabilita: number; service_line: string | null; margine: number | null
 }
 
 interface TopDeal {
   nome_trattativa: string; azienda_associata: string; importo: number
   importo_previsto: number; fase_trattativa: string; proprietario: string
-  data_chiusura: string | null; probabilita: number
+  data_chiusura: string | null; probabilita: number; margine: number | null
 }
 
 export default function HomePage() {

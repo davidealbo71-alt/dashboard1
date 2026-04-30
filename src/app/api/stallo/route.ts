@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   // Stallo: filtra per anno (ignora mese — un deal bloccato è bloccato indipendentemente dal mese di chiusura previsto)
   let q = supabase
     .from('deals')
-    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_entrata_fase,data_creazione,probabilita,vinta,persa')
+    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_entrata_fase,data_creazione,probabilita,vinta,persa,margine')
     .gte('data_chiusura', `${year}-01-01`)
     .lte('data_chiusura', `${year}-12-31`)
     .not('data_entrata_fase', 'is', null)

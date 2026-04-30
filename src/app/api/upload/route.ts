@@ -27,6 +27,12 @@ function toInt(val: unknown): number | null {
   return isNaN(n) ? null : n
 }
 
+function toNumNull(val: unknown): number | null {
+  if (val === '' || val === null || val === undefined) return null
+  const n = Number(val)
+  return isNaN(n) ? null : n
+}
+
 function toDate(val: unknown): string | null {
   if (typeof val === 'number') return excelDateToISO(val)
   if (typeof val === 'string' && val) return val
@@ -65,6 +71,7 @@ export async function POST(request: NextRequest) {
     tipo_trattativa: String(row['Tipo di trattativa'] ?? ''),
     motivo_lost: String(row['Motivo della trattativa LOST'] ?? ''),
     paese: String(row['Paese della Trattativa'] ?? ''),
+    margine: toNumNull(row['Margine %']),
   }))
 
   const supabase = getSupabase()

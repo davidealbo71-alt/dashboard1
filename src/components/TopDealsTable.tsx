@@ -19,6 +19,7 @@ interface Deal {
   proprietario: string
   data_chiusura: string | null
   probabilita: number
+  margine: number | null
 }
 
 interface Props {
@@ -27,6 +28,13 @@ interface Props {
 
 function eur(v: number) {
   return '€' + v.toLocaleString('it-IT', { maximumFractionDigits: 0 })
+}
+
+function margineColor(m: number | null) {
+  if (m == null) return 'text-slate-400'
+  if (m >= 40) return 'text-emerald-600 font-semibold'
+  if (m >= 20) return 'text-amber-600'
+  return 'text-rose-600'
 }
 
 function faseColor(fase: string): 'default' | 'secondary' | 'outline' {
@@ -78,6 +86,7 @@ export function TopDealsTable({ deals }: Props) {
             <TableHead className="text-xs text-right">Importo</TableHead>
             <TableHead className="text-xs text-right">Pesato</TableHead>
             <TableHead className="text-xs text-right">Prob.</TableHead>
+            <TableHead className="text-xs text-right">Margine %</TableHead>
             <TableHead className="text-xs text-right">Chiusura</TableHead>
           </TableRow>
         </TableHeader>
@@ -99,6 +108,9 @@ export function TopDealsTable({ deals }: Props) {
                 <span className={`font-medium ${d.probabilita >= 0.7 ? 'text-emerald-600' : d.probabilita >= 0.4 ? 'text-amber-600' : 'text-slate-500'}`}>
                   {(d.probabilita * 100).toFixed(0)}%
                 </span>
+              </TableCell>
+              <TableCell className={`text-xs text-right whitespace-nowrap ${margineColor(d.margine)}`}>
+                {d.margine != null ? d.margine.toFixed(1) + '%' : '—'}
               </TableCell>
               <TableCell className="text-xs text-slate-500 text-right whitespace-nowrap">
                 {d.data_chiusura ? new Date(d.data_chiusura).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}

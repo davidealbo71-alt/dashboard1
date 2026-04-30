@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
   let q = supabase
     .from('deals')
-    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_creazione,probabilita,service_line')
+    .select('nome_trattativa,azienda_associata,importo,importo_previsto,fase_trattativa,proprietario,data_chiusura,data_creazione,probabilita,service_line,margine')
     .eq('vinta', true)
     .gte('data_chiusura', from)
     .lte('data_chiusura', to)

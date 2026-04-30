@@ -18,12 +18,20 @@ interface WonDeal {
   data_creazione: string | null
   probabilita: number
   service_line: string | null
+  margine: number | null
 }
 
 interface Props { deals: WonDeal[] }
 
 function eur(v: number) {
   return '€' + v.toLocaleString('it-IT', { maximumFractionDigits: 0 })
+}
+
+function margineColor(m: number | null) {
+  if (m == null) return 'text-slate-400'
+  if (m >= 40) return 'text-emerald-600 font-semibold'
+  if (m >= 20) return 'text-amber-600'
+  return 'text-rose-600'
 }
 
 function topPerSales(deals: WonDeal[]) {
@@ -134,6 +142,7 @@ export function WonTab({ deals }: Props) {
               <TableHead className="text-xs text-right">Data Apertura</TableHead>
               <TableHead className="text-xs text-right">Data Chiusura</TableHead>
               <TableHead className="text-xs text-right">Importo</TableHead>
+              <TableHead className="text-xs text-right">Margine %</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -154,6 +163,9 @@ export function WonTab({ deals }: Props) {
                   {d.data_chiusura ? new Date(d.data_chiusura).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                 </TableCell>
                 <TableCell className="text-xs font-semibold text-slate-800 text-right whitespace-nowrap">{eur(d.importo)}</TableCell>
+                <TableCell className={`text-xs text-right whitespace-nowrap ${margineColor(d.margine)}`}>
+                  {d.margine != null ? d.margine.toFixed(1) + '%' : '—'}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
